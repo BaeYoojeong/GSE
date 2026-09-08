@@ -9,81 +9,83 @@ but WITHOUT ANY WARRANTY.
 */
 
 #include "stdafx.h"
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
 #include <iostream>
-#include "Dependencies\glew.h"
-#include "Dependencies\freeglut.h"
+#include "Dependencies/glew.h"
+#include "Dependencies/freeglut.h"
+#include "WorldScene.h"
 
-#include "Renderer.h"
-
-Renderer *g_Renderer = NULL;
-
-void RenderScene(void)
+namespace
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+    int lastUpdate = 0;
+    HWND gameWindow = NULL;
 
-	// Renderer Test
-	g_Renderer->DrawSolidRect(0, 0, 0, 4, 1, 0, 1, 1);
+    void RenderScene()
+    {
+        WorldScene::Render();
+        glutSwapBuffers();
+    }
 
-	glutSwapBuffers();
+    void Idle()
+    {
+        const int now = glutGet(GLUT_ELAPSED_TIME);
+        if (GetForegroundWindow() != gameWindow)
+            WorldScene::ClearInput();
+        WorldScene::Update((now - lastUpdate) * 0.001f);
+        lastUpdate = now;
+        glutPostRedisplay();
+    }
+
+    void KeyDown(unsigned char key, int, int) { WorldScene::Key(key, true); }
+    void KeyUp(unsigned char key, int, int) { WorldScene::Key(key, false); }
+    void ArrowDown(int key, int, int) { WorldScene::Arrow(key, true); }
+    void ArrowUp(int key, int, int) { WorldScene::Arrow(key, false); }
 }
 
-void Idle(void)
+int main(int argc, char** argv)
 {
-	RenderScene();
-}
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitWindowSize(1120, 784);
+    glutInitWindowPosition(80, 40);
+    const int window = glutCreateWindow("Moonlit Herbalist - Village & Palace");
+    if (window <= 0)
+        return 1;
+    gameWindow = GetActiveWindow();
 
-void MouseInput(int button, int state, int x, int y)
-{
-	RenderScene();
-}
+    glewExperimental = GL_TRUE;
+    const GLenum glewStatus = glewInit();
+    if (glewStatus != GLEW_OK || !GLEW_VERSION_3_3)
+    {
+        std::cerr << "OpenGL 3.3 is required for the village and palace scene." << std::endl;
+        glutDestroyWindow(window);
+        return 1;
+    }
+    if (!WorldScene::Initialize())
+    {
+        std::cerr << "Could not initialize the world renderer." << std::endl;
+        WorldScene::Shutdown();
+        glutDestroyWindow(window);
+        return 1;
+    }
 
-void KeyInput(unsigned char key, int x, int y)
-{
-	RenderScene();
-}
-
-void SpecialKeyInput(int key, int x, int y)
-{
-	RenderScene();
-}
-
-int main(int argc, char **argv)
-{
-	// Initialize GL things
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(0, 0);
-	glutInitWindowSize(500, 500);
-	glutCreateWindow("Game Software Engineering KPU");
-
-	glewInit();
-	if (glewIsSupported("GL_VERSION_3_0"))
-	{
-		std::cout << " GLEW Version is 3.0\n ";
-	}
-	else
-	{
-		std::cout << "GLEW 3.0 not supported\n ";
-	}
-
-	// Initialize Renderer
-	g_Renderer = new Renderer(500, 500);
-	if (!g_Renderer->IsInitialized())
-	{
-		std::cout << "Renderer could not be initialized.. \n";
-	}
-
-	glutDisplayFunc(RenderScene);
-	glutIdleFunc(Idle);
-	glutKeyboardFunc(KeyInput);
-	glutMouseFunc(MouseInput);
-	glutSpecialFunc(SpecialKeyInput);
-
-	glutMainLoop();
-
-	delete g_Renderer;
-
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+    glutDisplayFunc(RenderScene);
+    glutReshapeFunc(WorldScene::Resize);
+    glutIdleFunc(Idle);
+    glutKeyboardFunc(KeyDown);
+    glutKeyboardUpFunc(KeyUp);
+    glutSpecialFunc(ArrowDown);
+    glutSpecialUpFunc(ArrowUp);
+    glutCloseFunc(WorldScene::Shutdown);
+    glutIgnoreKeyRepeat(1);
+    WorldScene::Resize(1120, 784);
+    lastUpdate = glutGet(GLUT_ELAPSED_TIME);
+    std::cout << "Arrow keys: move | E: interact / close dialogue | ESC: close dialogue\n";
+    glutMainLoop();
     return 0;
 }
 
