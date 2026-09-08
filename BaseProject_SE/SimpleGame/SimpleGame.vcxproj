@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="WorldScene.h" />
+    <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -164,6 +165,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererRect.cpp" />
     <ClCompile Include="SimpleGame.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="WorldScene.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>

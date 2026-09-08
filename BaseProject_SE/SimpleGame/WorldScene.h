@@ -1,6 +1,6 @@
 #pragma once
 
-// Two connected prototype areas. Coordinates use a 1000 x 700 logical canvas.
+// Continuous 6000 x 4200 world viewed through a pixel-snapped 1000 x 700 camera.
 namespace WorldScene
 {
 	bool Initialize();
