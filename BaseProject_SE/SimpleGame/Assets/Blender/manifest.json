@@ -1,0 +1,47 @@
+{
+  "generator": "Blender",
+  "version": "5.2.2 LTS",
+  "projection": "fixed isometric",
+  "assets": [
+    {
+      "name": "cottage_0",
+      "vertices": 249,
+      "triangles": 83
+    },
+    {
+      "name": "cottage_1",
+      "vertices": 249,
+      "triangles": 83
+    },
+    {
+      "name": "cottage_2",
+      "vertices": 249,
+      "triangles": 83
+    },
+    {
+      "name": "cottage_3",
+      "vertices": 249,
+      "triangles": 83
+    },
+    {
+      "name": "tower_dark",
+      "vertices": 249,
+      "triangles": 83
+    },
+    {
+      "name": "tower_lit",
+      "vertices": 249,
+      "triangles": 83
+    },
+    {
+      "name": "keeper_dark",
+      "vertices": 180,
+      "triangles": 60
+    },
+    {
+      "name": "keeper_enraged",
+      "vertices": 180,
+      "triangles": 60
+    }
+  ]
+}

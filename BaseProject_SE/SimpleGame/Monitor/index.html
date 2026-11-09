@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>월드 관측소 · Ashen Inheritance</title>
+    <link rel="stylesheet" href="/monitor.css">
+    <script src="/monitor.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="page-header">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true"><span></span></span>
+                <div>
+                    <p class="eyebrow">ASHEN INHERITANCE / WORLD OBSERVATORY</p>
+                    <h1>월드 관측소</h1>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a class="button button-quiet" href="/api/state" target="_blank" rel="noopener">JSON 보기 <span aria-hidden="true">↗</span></a>
+                <button class="button" id="download-json" type="button" disabled>스냅샷 저장</button>
+            </div>
+        </header>
+
+        <div class="connection-bar" id="connection-bar" role="status" aria-live="polite">
+            <div class="connection-main"><span class="connection-dot" id="connection-dot"></span><strong id="connection-label">게임에 연결하는 중</strong><span id="connection-description">첫 JSON 메시지를 기다리고 있습니다.</span></div>
+            <div class="connection-meta"><span id="world-time">월드 시간 —</span><span class="meta-divider"></span><span id="updated-at">업데이트 —</span><span class="meta-divider"></span><span id="sequence">메시지 —</span></div>
+        </div>
+
+        <div id="warnings" class="warnings" hidden></div>
+        <div id="session-notice" class="session-notice" role="status" hidden>게임 세션이 변경되어 관측 정보를 갱신했습니다.</div>
+
+        <main>
+            <section aria-labelledby="overview-heading">
+                <div class="section-heading overview-heading"><div><p class="eyebrow">LIVE OVERVIEW</p><h2 id="overview-heading">살아 움직이는 세계</h2></div><div class="world-flags"><span class="badge" id="player-state">플레이어 —</span><span class="badge" id="pk-state">PK —</span></div></div>
+                <div class="metrics-grid">
+                    <article class="metric-card"><div class="metric-label"><span class="metric-icon icon-purple" aria-hidden="true">♟</span>NPC</div><div class="metric-number" id="metric-npcs">—</div><div class="metric-description" id="metric-npcs-description">전체 주민 / 생존 주민</div><div class="metric-footer"><span class="small-dot purple"></span><span id="metric-visible">화면에 로드됨 —</span></div></article>
+                    <article class="metric-card"><div class="metric-label"><span class="metric-icon icon-amber" aria-hidden="true">◇</span>몬스터</div><div class="metric-number" id="metric-monsters">—</div><div class="metric-description" id="metric-monsters-description">현재 관측 지역의 생존 몬스터</div><div class="metric-footer"><span class="small-dot amber"></span><span id="metric-quarries">사냥터 — / 일반 —</span></div></article>
+                    <article class="metric-card"><div class="metric-label"><span class="metric-icon icon-green" aria-hidden="true">⌂</span>마을</div><div class="metric-number" id="metric-villages">—</div><div class="metric-description">NPC가 거주하는 알려진 마을</div><div class="metric-footer"><span class="small-dot green"></span><span id="metric-chunks">활성 청크 —</span></div></article>
+                    <article class="metric-card"><div class="metric-label"><span class="metric-icon icon-red" aria-hidden="true">!</span>사건과 소문</div><div class="metric-number" id="metric-events">—</div><div class="metric-description" id="metric-events-description">최근 120초 사건</div><div class="metric-footer"><span class="small-dot red"></span><span id="metric-murders">살인 — · 소문 —</span></div></article>
+                </div>
+                <div class="activity-strip"><div><span>누적 거래</span><strong id="total-trades">—</strong></div><div><span>누적 약탈</span><strong id="total-raids">—</strong></div><div><span>누적 사냥</span><strong id="total-hunts">—</strong></div><p>1초마다 JSON 수신 · 알려진 월드의 상태를 표시합니다</p></div>
+                <details class="section-description"><summary>월드 처리 상태</summary><p id="streaming-status">게임 연결 후 표시됩니다.</p><p id="worker-status"></p></details>
+            </section>
+
+            <section aria-labelledby="villages-heading" class="villages-section">
+                <div class="section-heading"><div><p class="eyebrow">SETTLEMENTS</p><h2 id="villages-heading">마을의 분위기</h2></div><button class="text-button" id="clear-village" type="button" hidden>전체 마을 보기 <span aria-hidden="true">↗</span></button></div>
+                <p class="section-description">주민의 성향과 최근 활동으로 판단합니다. 마을을 선택하면 주민과 사건을 함께 살펴볼 수 있습니다.</p>
+                <div class="village-grid" id="village-grid"><div class="empty-state initial-empty">게임 연결 후 마을 상태가 표시됩니다.</div></div>
+            </section>
+
+            <section aria-labelledby="communication-heading" class="events-section">
+                <div class="section-heading"><div><p class="eyebrow">LETTERS &amp; JOURNEYS</p><h2 id="communication-heading">마을 사이의 소식과 이사</h2></div></div>
+                <p class="section-description">편지는 전령이 도착해야 전달됩니다. 마을이 받은 소식은 작성 당시의 정보이며, 주민의 이사 판단에 사용됩니다.</p>
+                <div class="panel" style="padding: 24px"><p id="communication-summary">게임 연결 대기</p><div id="letter-list"></div><details><summary>마을별로 알고 있는 소식</summary><div id="news-list"></div></details><p id="chapter-objective"></p></div>
+            </section>
+
+            <section aria-labelledby="npcs-heading" class="npc-section">
+                <div class="section-heading"><div><p class="eyebrow">CITIZENS</p><h2 id="npcs-heading">주민 상태 <span class="heading-count" id="npc-count">0</span></h2></div><span class="selected-village-label" id="selected-village-label">전체 마을</span></div>
+                <div class="panel npc-panel">
+                    <div class="filter-bar npc-filters">
+                        <label class="search-field"><span aria-hidden="true">⌕</span><input type="search" id="npc-search" placeholder="NPC ID, 직업, 목표 검색" aria-label="NPC 검색" autocomplete="off"></label>
+                        <label class="filter-field"><span class="sr-only">직업</span><select id="profession-filter"><option value="">모든 직업</option></select></label>
+                        <label class="filter-field"><span class="sr-only">NPC 상태</span><select id="npc-state-filter"><option value="">모든 상태</option><option value="hostile">적대적인 주민</option><option value="injured">부상한 주민</option><option value="protected">부활 보호 중</option><option value="visible">화면에 로드됨</option></select></label>
+                    </div>
+                    <div class="npc-content">
+                        <div class="npc-table-area">
+                            <div class="table-scroll"><table class="npc-table"><caption class="sr-only">NPC 상태 목록. 열 제목을 누르면 정렬하며, 행을 선택하면 상세 상태를 표시합니다.</caption><thead><tr><th scope="col" aria-sort="ascending"><button data-sort="id" type="button">주민 <span class="sort-arrow">↑</span></button></th><th scope="col"><button data-sort="profession" type="button">직업 <span class="sort-arrow"></span></button></th><th scope="col"><button data-sort="activity" type="button">행동 <span class="sort-arrow"></span></button></th><th scope="col"><button data-sort="health" type="button">체력 <span class="sort-arrow"></span></button></th><th scope="col"><button data-sort="coins" type="button">자산 <span class="sort-arrow"></span></button></th><th scope="col"><button data-sort="raid_weight" type="button">약탈 성향 <span class="sort-arrow"></span></button></th><th scope="col"><span>상태</span></th></tr></thead><tbody id="npc-rows"><tr><td colspan="7" class="table-empty">게임 연결 후 주민 상태가 표시됩니다.</td></tr></tbody></table></div>
+                            <div class="table-pagination"><span id="npc-page-summary">0명의 주민</span><div><label class="page-size-label">표시 <select id="page-size" aria-label="페이지당 NPC 수"><option value="25">25명</option><option value="50">50명</option><option value="100">100명</option></select></label><button class="pagination-button" id="previous-page" type="button" aria-label="이전 페이지" disabled>‹</button><span id="page-indicator">1 / 1</span><button class="pagination-button" id="next-page" type="button" aria-label="다음 페이지" disabled>›</button></div></div>
+                        </div>
+                        <aside class="npc-details" id="npc-details" aria-label="선택한 NPC 상세 정보"><div class="detail-placeholder"><span class="detail-placeholder-icon" aria-hidden="true">◎</span><h3>주민의 이야기를 살펴보세요</h3><p>목록에서 주민을 선택하면 성향, 목표, 행동 점수와 상태를 확인할 수 있습니다.</p></div></aside>
+                    </div>
+                </div>
+            </section>
+
+            <section aria-labelledby="events-heading" class="events-section">
+                <div class="section-heading"><div><p class="eyebrow">WORLD CHRONICLE</p><h2 id="events-heading">사건과 소문 <span class="heading-count" id="event-count">0</span></h2></div><span class="event-window-label" id="event-window-label">최대 512개 사건 보관</span></div>
+                <div class="panel events-panel">
+                    <div class="filter-bar event-filters"><label class="filter-field"><span class="sr-only">사건 종류</span><select id="event-type-filter"><option value="">모든 사건</option></select></label><label class="filter-field"><span class="sr-only">사건 심각도</span><select id="event-severity-filter"><option value="">모든 중요도</option></select></label><label class="filter-field event-village-filter"><span class="sr-only">사건 마을</span><select id="event-village-filter"><option value="">모든 마을</option></select></label><label class="search-field event-search"><span aria-hidden="true">⌕</span><input type="search" id="event-search" placeholder="사건 내용, NPC ID 검색" aria-label="사건 검색" autocomplete="off"></label></div>
+                    <div class="event-legend"><span><i class="small-dot red"></i> 확인된 살인·피해</span><span><i class="small-dot amber"></i> 소문·경고</span><span><i class="small-dot purple"></i> 일상 활동</span><span class="event-limit-label" id="event-limit-label">새로운 사건이 위에 표시됩니다</span></div>
+                    <div class="event-feed" id="event-feed"><div class="empty-state">아직 수신한 사건이 없습니다.</div></div>
+                    <div class="event-pagination" id="event-pagination" hidden><button class="text-button" id="more-events" type="button">이전 사건 더 보기</button></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="page-footer"><span><span class="small-dot purple"></span> 관측 전용 · 브라우저를 보는 동안에도 월드는 진행됩니다</span><span><span id="server-address">LOCAL / 연결 대기</span> <span class="footer-divider">·</span> JSON schema v1</span></footer>
+    </div>
+</body>
+</html>

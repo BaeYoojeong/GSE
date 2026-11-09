@@ -12,3 +12,6 @@
 *.suo 
 *.db 
 
+
+# Generated solution-level build output (tracked runtime DLLs remain tracked).
+/x64/

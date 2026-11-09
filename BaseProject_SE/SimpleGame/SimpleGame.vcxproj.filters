@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="소스 파일">
@@ -19,6 +19,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="INFINITE_WORLD_KR.txt" />
+    <Text Include="LEVEL_ONE_KR.txt" />
+    <Text Include="CODE_CONVENTIONS_KR.txt" />
+    <Text Include="RENDERING_CACHE_KR.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -33,7 +37,19 @@
     <ClInclude Include="WorldScene.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="InfiniteWorld.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelOne.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="PostProcessing.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshCache.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderProgram.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,19 +66,253 @@
     <ClCompile Include="PostProcessing.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="MeshCache.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="RendererRect.cpp">
+    <ClCompile Include="ShaderProgram.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\SolidRect.fs">
+    <CustomBuild Include="Shaders\SolidRect.vs">
       <Filter>소스 파일\Shaders</Filter>
-    </None>
-    <None Include="Shaders\SolidRect.vs">
+    </CustomBuild>
+    <CustomBuild Include="Shaders\SolidRect.fs">
       <Filter>소스 파일\Shaders</Filter>
-    </None>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\World.vs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\World.fs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\Fullscreen.vs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\BloomExtract.fs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\GaussianBlur.fs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\Composite.fs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Actor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneGraph.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkAgeGame.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkAgeWorld.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkAgeSave.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkAgeRenderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClInclude Include="Actor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneGraph.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DarkAgeGame.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DarkAgeRenderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <Text Include="NEW_GAME_DIRECTION_KR.txt" />
+    <Text Include="DARK_AGE_PROTOTYPE_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkAgeActors.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkAgeInteractions.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Shaders\BloomDownsample.fs">
+      <Filter>소스 파일\Shaders</Filter>
+    </CustomBuild>
+    <Text Include="POSTPROCESSING_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkAgeCombat.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="DarkAgeProgression.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="DarkAgeLayout.cpp"><Filter>소스 파일</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkAgeGeometry.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClInclude Include="DarkAgeGeometry.h"><Filter>헤더 파일</Filter></ClInclude>
+    <Text Include="ISOMETRIC_25D_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PlayerActor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyActor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="HeirActor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectileActor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DropActor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClInclude Include="WorldTypes.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldActors.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <Text Include="ACTOR_SCENE_GRAPH_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SceneryActors.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RenderProfiler.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClInclude Include="RenderProfiler.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <Text Include="RENDER_PROFILING_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RenderBatch.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DiskMeshCache.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClInclude Include="RenderBatch.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DiskMeshCache.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <Text Include="RENDER_OPTIMIZATION_REPORT_KR.txt" />
+    <Text Include="analyze_render_log.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldSociety.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="WorldSocietySave.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="SocietyActors.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClInclude Include="WorldSociety.h"><Filter>헤더 파일</Filter></ClInclude>
+    <None Include="LIVING_WORLD_PROTOTYPE_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldSocietySpatial.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="WorldSocietyDecision.cpp"><Filter>소스 파일</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SOCIETY_TRANSITIONS_KR.md" />
+    <None Include="POPULATION_SPACING_FIX_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldMonitor.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="MonitorServer.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="WorldSocietyEvents.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClInclude Include="WorldMonitor.h"><Filter>헤더 파일</Filter></ClInclude>
+    <ClInclude Include="MonitorServer.h"><Filter>헤더 파일</Filter></ClInclude>
+    <CustomBuild Include="Monitor\index.html" />
+    <CustomBuild Include="Monitor\monitor.js" />
+    <CustomBuild Include="Monitor\monitor.css" />
+    <None Include="MONITORING_KR.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="WorldSocietyRoutes.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <ClCompile Include="WorldSocietyActors.cpp"><Filter>소스 파일</Filter></ClCompile>
+    <None Include="WORLD_ACTIVITY_ROUTES_KR.md" />
+    <None Include="WILDERNESS_RAID_BALANCE_KR.md" />
+    <ClInclude Include="ChapterTwo.h" />
+    <ClInclude Include="ChapterActors.h" />
+    <ClInclude Include="ChapterGeometry.h" />
+    <ClCompile Include="ChapterTwo.cpp" />
+    <ClCompile Include="ChapterActors.cpp" />
+    <ClCompile Include="ChapterGeometry.cpp" />
+    <None Include="LEVEL_TWO_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TownWorld.cpp" />
+    <ClCompile Include="WorldSocietyNetwork.cpp" />
+    <ClCompile Include="ResidenceActor.cpp" />
+    <ClCompile Include="BlenderAssets.cpp" />
+    <ClInclude Include="TownWorld.h" />
+    <ClInclude Include="BlenderAssets.h" />
+    <None Include="SEVEN_TOWNS_KR.md" />
+    <None Include="BLENDER_ASSET_PIPELINE_KR.md" />
+    <None Include="Tools\build_blender_assets.py" />
+    <None Include="Assets\Blender\medieval_library.blend" />
+    <None Include="Assets\Blender\manifest.json" />
+    <CustomBuild Include="Assets\Blender\cottage_0.ashmesh" />
+    <CustomBuild Include="Assets\Blender\cottage_1.ashmesh" />
+    <CustomBuild Include="Assets\Blender\cottage_2.ashmesh" />
+    <CustomBuild Include="Assets\Blender\cottage_3.ashmesh" />
+    <CustomBuild Include="Assets\Blender\keeper_dark.ashmesh" />
+    <CustomBuild Include="Assets\Blender\keeper_enraged.ashmesh" />
+    <CustomBuild Include="Assets\Blender\tower_dark.ashmesh" />
+    <CustomBuild Include="Assets\Blender\tower_lit.ashmesh" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SOCIETY_BALANCE_VISIBILITY_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AssetCatalog.cpp" />
+    <ClCompile Include="GltfModel.cpp" />
+    <ClCompile Include="GltfPose.cpp" />
+    <ClInclude Include="AssetCatalog.h" />
+    <ClInclude Include="GltfModel.h" />
+    <ClInclude Include="GltfMath.h" />
+    <ClInclude Include="ThirdParty\cgltf.h" />
+    <ClInclude Include="ThirdParty\json.hpp" />
+    <None Include="ASSET_LOADER_KR.md" />
+    <None Include="ThirdParty\cgltf.LICENSE" />
+    <None Include="ThirdParty\json.LICENSE" />
+    <None Include="ThirdParty\README.md" />
+    <None Include="Tools\inspect_asset_pack.py" />
+    <CustomBuild Include="Assets\모델.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ASSET_LOADER_INPUT_AUDIT.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PlanetWorld.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="RegionDatabase.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="FarSimulation.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="AssetContract.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="BlenderBridge.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="ActorAnimation.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="AcceptanceChecks.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClInclude Include="PlanetWorld.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="RegionDatabase.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="FarSimulation.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="AssetContract.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="BlenderBridge.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="AcceptanceChecks.h"><Filter>Header Files</Filter></ClInclude>
+    <None Include="WORLD_COMPLETION_KR.md" />
+    <CustomBuild Include="Assets\LOADER_CONTRACT.md" />
+    <CustomBuild Include="Tools\export_asset_snapshot.py" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,18 @@
+# UTF-8. 게임용 자산 로더 설정. 경로는 따옴표로 감싸도 됩니다.
+# 기존 모델.txt를 찾지 못해 사용자 지시에 따라 새로 만들었습니다. 관련 자산 제작 작업의 outputs를 연결합니다.
+# 다른 폴더를 사용하면 root를 수정하세요. 실제 감시 중인 설정 경로는 asset_config_path 로그에 표시됩니다.
+root = C:\Users\yujun\Documents\Codex\2026-10-26\referenced-chatgpt-conversation-this-is-an\outputs
+manifest = asset_manifest.json
+watch_md = README_KO.md
+watch_md = 검증_요약.md
+rig_schema = rig_schema.json
+enabled = true
+poll_seconds = 1
+pose_fps = 12
+units_per_meter = 30
+
+# 게임용 선언적 규칙: 변경 시 자동 재적용
+watch_md = @config/LOADER_CONTRACT.md
+# Blender 원본은 읽기만 하고 실행 프로필의 캐시에 내보냅니다. F10 수동 요청.
+auto_export = true
+source_blend = BriarGlen_AssetLibrary.blend

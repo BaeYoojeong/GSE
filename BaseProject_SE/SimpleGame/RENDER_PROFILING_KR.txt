@@ -1,0 +1,55 @@
+
+렌더링 프로파일 로그 — schema 2
+
+기본 콘솔 출력은 기존처럼 프레임마다 수행한다.
+  [Render] frame=... draw_calls=... instanced=... instances=...
+           mesh_builds=... disk_hits=... upload_bytes=...
+
+draw_calls는 실제 glDrawArrays/glDrawArraysInstanced 호출 횟수다.
+인스턴스 100개를 한 호출로 그리면 draw_calls는 1, instances는 100이다.
+glDrawBuffers, glClear, 업로드, SwapBuffers는 draw_calls에 포함하지 않는다.
+
+자동 파일 로그:
+  %LOCALAPPDATA%\AshenInheritance\Profiling\세션 디렉터리
+  frames-*.csv / batches-*.csv / events-*.csv
+  실행 시작 시 콘솔에 실제 경로를 출력한다.
+  종류별 16MiB×4개 순환 파일, 120프레임마다 flush, 종료 시 닫기.
+  세션 디렉터리는 과거 분석을 위해 보관하며 자동 삭제하지 않는다.
+
+주요 필드
+  draw_calls: 프레임 전체 호출 수. 후처리/UI/fallback 포함.
+  instanced_calls: 그중 glDrawArraysInstanced 호출 수.
+  instances: 배치로 제출된 오브젝트/사각형 인스턴스 수. Actor 수와 다르다.
+  useful_vertices / submitted_vertices: 배치의 필요/패딩 포함 정점 수. 후처리/fallback 정점은 제외.
+  upload_bytes: 아틀라스 등록, 인스턴스 버퍼와 fallback 정점 업로드 합계.
+                텍스트/FBO 텍스처 할당과 GPU 예약 용량은 포함하지 않는다.
+  mesh_builds / built_vertices / build_ms: 실제 형상 생성 수/정점 수/CPU 시간.
+  memory_hits/memory_misses: GPU 상주 메시 조회 결과.
+  disk_hits/disk_misses/disk_writes/disk_ms: 파일 캐시 동작.
+  evictions/cache_failures: 상주 메시 퇴거/캐시 오류 또는 공간 부족.
+  resident_meshes/resident_bytes: 프레임 종료 시 상주 수/사용 중인 아틀라스 바이트.
+  visible/culled: SceneGraph 렌더 목록에서 한 번 판정한 월드 Actor 수.
+  text_builds: GDI 텍스트 텍스처 생성 시도 수. 메시 생성과 별도다.
+  ground/shadow/world/post/ui/other_calls 및 _cpu_ms: 패스별 호출/CPU 시간.
+  cpu_render_swap_ms: 렌더 준비부터 swap 완료까지. update 전체/GPU 시간과 다르다.
+  각 패스의 로그/캐시 IO 비용은 시간에 포함된다. EndFrame의 CSV/콘솔 작성 시간은 제외된다.
+
+환경변수(프로세스 시작 전에 설정)
+  ASHEN_BATCHING=0: 배치 큐의 항목별 단일 제출 비교 모드. 기본은 배치 켜짐.
+  ASHEN_MESH_DISK_CACHE=0: 파일 캐시 읽기/쓰기 끔. GPU 캐시는 유지.
+  ASHEN_PROFILE_CONSOLE_EVERY=60: 60프레임마다 콘솔 출력. 기본 1, 0이면 콘솔 통계 끔.
+  CSV는 콘솔 빈도와 무관하게 프레임마다 남긴다.
+
+PowerShell 예시:
+  $env:ASHEN_PROFILE_CONSOLE_EVERY = '60'
+  $env:ASHEN_BATCHING = '0'
+  이후 같은 PowerShell에서 게임을 실행하면 설정을 상속한다.
+  Visual Studio로 실행한다면 디버깅 환경 변수에 같은 값을 설정한다.
+
+분석:
+  python analyze_render_log.py "세션 경로"
+  python analyze_render_log.py "현재 세션" --baseline "이전 세션" --skip-frames 120
+  분석 결과는 시각이 붙은 txt로 저장한다. C++ 빌드나 게임 실행은 하지 않는다.
+
+실제 개선 수치는 동일 조건의 실행 로그로 판단한다.
+배치 설계/한계/캐시 포맷/추가 개선 후보는 RENDER_OPTIMIZATION_REPORT_KR.txt 참고.

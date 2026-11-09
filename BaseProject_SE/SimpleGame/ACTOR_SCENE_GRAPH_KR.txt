@@ -1,0 +1,108 @@
+재의 계승 — Actor / SceneGraph 구조
+
+1. 적용 대상
+
+현재 실행 경로는 SimpleGame.cpp → WorldScene → Ashen::Game / AshenRenderer이다.
+LevelOne.cpp는 이전 동양풍 기획의 코드이며 현재 vcxproj의 컴파일 대상이 아니다.
+따라서 현재 중세 암흑시대 게임을 구현하는 DarkAge 계열 소스에 리팩터링을 적용했다.
+
+2. 책임 분리
+
+Actor.h / Actor.cpp
+  게임 종류에 의존하지 않는 장면 노드다.
+  ID, 부모, 자식, 로컬 위치, 월드 위치, 활성화, 표시 상태를 담당한다.
+  부모 위치는 자식의 월드 위치에 합산된다. 현재 변환은 2D 평면상의 이동만 지원하며,
+  화면에 보이는 2.5D 투영과 모델의 높이는 렌더러가 처리한다.
+
+WorldTypes.h
+  월드 좌표, 청크 키, 오브젝트 종류, 전승 기록, 지역 상태, 성장 데이터를 선언한다.
+
+WorldActor.h / DarkAgeActors.cpp
+  Actor를 상속하는 게임 오브젝트의 공통 기반이다.
+  공통 타이머, 방향, 걷기 애니메이션과 OnUpdate 호출을 담당한다.
+  Interact / InteractionPrompt / CanInteract 인터페이스를 제공한다.
+  지형, 건물, 나무, 잔해처럼 별도 행동이 없는 배경도 WorldActor로 배치한다.
+
+WorldActors.h / 각 구현 파일
+  PlayerActor.cpp: 입력에 따른 이동, 방향, 이동 기록, 원점 이동, 공격 요청.
+  EnemyActor.cpp: 추적, 공격 준비, 피해, 안전지대 판정.
+  HeirActor.cpp: 전생 성격에 따른 배회, 회복, 보호 행동과 대화 시작.
+  ProjectileActor.cpp: 발사체 이동, 사거리, 세분화한 충돌 판정과 명중.
+  DropActor.cpp: 습득 대기, 자석에 의한 이동, 아이템 습득 요청.
+  SceneryActors.cpp: HerbActor의 채집, FireActor의 점화/휴식,
+    SettlerActor와 GraveActor의 대화/기록 열기.
+  InteractiveActor는 상호작용 가능한 Actor의 공통 추상 클래스다.
+
+Game / DarkAge 계열 서비스
+  Game::Update는 시간, 일시정지, SceneGraph 갱신, 사망, 카메라, 저장을 조율한다.
+  Actor별 매 프레임 행동을 분기하던 Game::UpdateActor는 제거했다.
+  Game::Spawn에서 생성 시 한 번 구체적인 Actor 클래스를 선택한다.
+  Game::Interact는 가까운 Actor의 가상 함수를 호출하고 성공한 변경을 저장한다.
+  충돌 조회, 생성, 보상, 대화 내용, 관계/감정, 저장 등 공유 규칙은 Game에 남긴다.
+  구체적인 Actor는 Game의 friend로 공유 서비스에 접근한다.
+
+3. SceneGraph가 관리하는 배치
+
+SceneGraph
+  ├─ PlayerActor (월드 루트)
+  ├─ 청크 루트 Actor
+  │   ├─ WorldActor (지형, 집, 나무 등)
+  │   ├─ FireActor / HerbActor
+  │   ├─ SettlerActor / HeirActor / GraveActor
+  │   ├─ EnemyActor
+  │   └─ DropActor
+  └─ ProjectileActor (월드 루트)
+
+청크 루트가 이동하면 자식 오브젝트도 함께 이동한다.
+청크 루트를 Destroy하면 자식도 제거 대상으로 표시된다.
+발사체는 청크 수명에 종속되지 않도록 루트에 배치하고, 원점 이동 때 좌표를 보정한다.
+언로드된 청크의 지속 상태는 별도의 Region / Memory 기록에 유지한다.
+
+4. 생성 / 갱신 / 삭제 / 렌더링 계약
+
+Create<T>(parentId, ...)
+  Actor 파생 클래스만 받을 수 있다. SceneGraph가 unique_ptr로 소유한다.
+  외부 코드는 소유권 없이 ActorId로 참조하고 필요할 때 Find로 조회한다.
+  SceneGraph 자체의 복사/이동은 금지해 Actor의 graph 포인터를 유지한다.
+
+Reparent(childId, parentId, keepWorldPosition)
+  잘못된 부모나 순환 연결을 거부한다.
+  기본값은 현재 월드 위치를 유지하면서 로컬 위치를 바꾸는 방식이다.
+
+HierarchySnapshot / Update
+  프레임 시작 시 부모 → 자식 순서의 목록을 만든다.
+  루트는 ID 순서이고 자식은 연결 순서이다. 플레이어 루트가 청크보다 먼저 갱신된다.
+  부모의 비활성화는 자식 갱신에도 적용된다.
+  갱신 중 새로 생성된 Actor는 다음 프레임부터 갱신한다.
+  갱신 중 Destroy한 Actor는 바로 비활성/비표시 취급되고 실제 메모리 해제는
+  전체 갱신이 끝난 뒤 수행한다. 청크 스트리밍 중에도 이 규칙을 따른다.
+  갱신 중 부모를 바꾸면 변경된 순회 순서는 다음 프레임에 반영된다.
+
+Snapshot
+  게임 검색용 ID 순서 목록이다. 반환한 포인터는 CollectDestroyed / Clear 이후
+  보관해 사용하지 않는다. 장기간 참조는 ActorId를 저장한다.
+
+RenderSnapshot(depthAxis)
+  부모의 표시 상태까지 반영해 renderable인 Actor만 반환한다.
+  layer → 카메라 방향의 깊이 → ActorId 순서로 정렬한다.
+  AshenRenderer는 이 목록을 받아 화면 밖 제외, 메시 선택, 그림자와 실제 그리기를 한다.
+  월드의 배치 오브젝트가 대상이며 HUD, 조준 표시, 그림자, 후처리는 렌더러의 표현이다.
+
+5. 오브젝트 추가 방법
+
+  1) 새 행동이 필요하면 WorldActor를 상속하고 OnUpdate를 구현한다.
+     상호작용이 필요하면 InteractiveActor를 상속하여 Interact와 InteractionPrompt를 구현한다.
+     Interact는 변경에 성공했으면 true, 수행하지 못했으면 false를 반환한다.
+  2) WorldActors.h에 선언하고 구현 파일을 프로젝트에 등록한다.
+  3) Kind와 Game::Spawn 생성 분기에 타입을 연결한다.
+  4) 적절한 청크 부모 ID로 생성하고 필요한 배치 속성을 설정한다.
+  5) 새 외형이 필요하면 렌더러의 모델/메시 캐시 키에 연결한다.
+     외형을 바꾸는 상태는 캐시 키에 포함하고 위치/공통 색상은 그리기 변환으로 전달한다.
+  6) 지속되어야 하는 새 상태는 Region/Memory 또는 저장 모델에 명시적으로 추가한다.
+
+6. 확인 범위
+
+소스 구조, 선언/구현 연결, 프로젝트 XML과 파일 등록, 코드 포맷을 정적으로 확인한다.
+빌드, 게임 실행, 렌더링 결과 확인은 사용자 요청에 따라 수행하지 않는다.
+사용자 실행 시에는 이동/청크 경계, 자동 공격, 드롭, 채집, 휴식, NPC 대화,
+사망 후 전승과 재시작을 확인하면 된다.

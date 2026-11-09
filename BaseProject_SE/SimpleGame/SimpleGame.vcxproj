@@ -85,7 +85,9 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -95,12 +97,14 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>.\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);opengl32.lib;freeglut.lib;glew32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);opengl32.lib;freeglut.lib;glew32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -110,12 +114,14 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>.\Dependencies\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);freeglut.lib;glew32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);freeglut.lib;glew32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -129,12 +135,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>.\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);freeglut.lib;glew32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);freeglut.lib;glew32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -147,41 +155,322 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);freeglut.lib;glew32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);freeglut.lib;glew32.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>.\Dependencies\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="INFINITE_WORLD_KR.txt" />
+    <Text Include="LEVEL_ONE_KR.txt" />
+    <Text Include="CODE_CONVENTIONS_KR.txt" />
+    <Text Include="RENDERING_CACHE_KR.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="WorldScene.h" />
+    <ClInclude Include="InfiniteWorld.h" />
+    <ClInclude Include="LevelOne.h" />
     <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="MeshCache.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RendererRect.cpp" />
     <ClCompile Include="SimpleGame.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="MeshCache.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="WorldScene.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\SolidRect.fs" />
-    <None Include="Shaders\SolidRect.vs" />
+    <CustomBuild Include="Shaders\SolidRect.vs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\SolidRect.fs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\World.vs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\World.fs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\Fullscreen.vs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\BloomExtract.fs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\GaussianBlur.fs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\Composite.fs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="SceneGraph.cpp" />
+    <ClCompile Include="DarkAgeGame.cpp" />
+    <ClCompile Include="DarkAgeWorld.cpp" />
+    <ClCompile Include="DarkAgeSave.cpp" />
+    <ClCompile Include="DarkAgeRenderer.cpp" />
+    <ClInclude Include="Actor.h" />
+    <ClInclude Include="SceneGraph.h" />
+    <ClInclude Include="DarkAgeGame.h" />
+    <ClInclude Include="DarkAgeRenderer.h" />
+    <Text Include="NEW_GAME_DIRECTION_KR.txt" />
+    <Text Include="DARK_AGE_PROTOTYPE_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkAgeActors.cpp" />
+    <ClCompile Include="DarkAgeInteractions.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Shaders\BloomDownsample.fs">
+      <FileType>Document</FileType>
+      <Message>Copying shader %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Shaders" mkdir "$(OutDir)Shaders"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Shaders\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Shaders\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <Text Include="POSTPROCESSING_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkAgeCombat.cpp" />
+    <ClCompile Include="DarkAgeProgression.cpp" />
+    <ClCompile Include="DarkAgeLayout.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkAgeGeometry.cpp" />
+    <ClInclude Include="DarkAgeGeometry.h" />
+    <Text Include="ISOMETRIC_25D_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PlayerActor.cpp" />
+    <ClCompile Include="EnemyActor.cpp" />
+    <ClCompile Include="HeirActor.cpp" />
+    <ClCompile Include="ProjectileActor.cpp" />
+    <ClCompile Include="DropActor.cpp" />
+    <ClInclude Include="WorldTypes.h" />
+    <ClInclude Include="WorldActor.h" />
+    <ClInclude Include="WorldActors.h" />
+    <Text Include="ACTOR_SCENE_GRAPH_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SceneryActors.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RenderProfiler.cpp" />
+    <ClInclude Include="RenderProfiler.h" />
+    <Text Include="RENDER_PROFILING_KR.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RenderBatch.cpp" />
+    <ClCompile Include="DiskMeshCache.cpp" />
+    <ClInclude Include="RenderBatch.h" />
+    <ClInclude Include="DiskMeshCache.h" />
+    <Text Include="RENDER_OPTIMIZATION_REPORT_KR.txt" />
+    <Text Include="analyze_render_log.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldSociety.cpp" />
+    <ClCompile Include="WorldSocietySave.cpp" />
+    <ClCompile Include="SocietyActors.cpp" />
+    <ClInclude Include="WorldSociety.h" />
+    <None Include="LIVING_WORLD_PROTOTYPE_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldSocietySpatial.cpp" />
+    <ClCompile Include="WorldSocietyDecision.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SOCIETY_TRANSITIONS_KR.md" />
+    <None Include="POPULATION_SPACING_FIX_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldMonitor.cpp" />
+    <ClCompile Include="MonitorServer.cpp" />
+    <ClCompile Include="WorldSocietyEvents.cpp" />
+    <ClInclude Include="WorldMonitor.h" />
+    <ClInclude Include="MonitorServer.h" />
+    <None Include="MONITORING_KR.md" />
+    <None Include="SOCIETY_BALANCE_VISIBILITY_KR.md" />
+    <CustomBuild Include="Monitor\index.html">
+      <FileType>Document</FileType>
+      <Message>Copying monitor %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Monitor" mkdir "$(OutDir)Monitor"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Monitor\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Monitor\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Monitor\monitor.js">
+      <FileType>Document</FileType>
+      <Message>Copying monitor %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Monitor" mkdir "$(OutDir)Monitor"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Monitor\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Monitor\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Monitor\monitor.css">
+      <FileType>Document</FileType>
+      <Message>Copying monitor %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Monitor" mkdir "$(OutDir)Monitor"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Monitor\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Monitor\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="WorldSocietyRoutes.cpp"></ClCompile>
+    <ClCompile Include="WorldSocietyActors.cpp"></ClCompile>
+    <None Include="WORLD_ACTIVITY_ROUTES_KR.md" />
+    <None Include="WILDERNESS_RAID_BALANCE_KR.md" />
+    <ClInclude Include="ChapterTwo.h" />
+    <ClInclude Include="ChapterActors.h" />
+    <ClInclude Include="ChapterGeometry.h" />
+    <ClCompile Include="ChapterTwo.cpp" />
+    <ClCompile Include="ChapterActors.cpp" />
+    <ClCompile Include="ChapterGeometry.cpp" />
+    <None Include="LEVEL_TWO_KR.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TownWorld.cpp" />
+    <ClCompile Include="WorldSocietyNetwork.cpp" />
+    <ClCompile Include="ResidenceActor.cpp" />
+    <ClCompile Include="BlenderAssets.cpp" />
+    <ClInclude Include="TownWorld.h" />
+    <ClInclude Include="BlenderAssets.h" />
+    <None Include="SEVEN_TOWNS_KR.md" />
+    <None Include="BLENDER_ASSET_PIPELINE_KR.md" />
+    <None Include="Tools\build_blender_assets.py" />
+    <None Include="Assets\Blender\medieval_library.blend" />
+    <None Include="Assets\Blender\manifest.json" />
+    <CustomBuild Include="Assets\Blender\cottage_0.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\cottage_1.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\cottage_2.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\cottage_3.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\keeper_dark.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\keeper_enraged.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\tower_dark.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Assets\Blender\tower_lit.ashmesh">
+      <FileType>Document</FileType>
+      <Message>Copying Blender asset %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets\Blender" mkdir "$(OutDir)Assets\Blender"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\Blender\%(Filename)%(Extension)" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\Blender\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AssetCatalog.cpp" />
+    <ClCompile Include="GltfModel.cpp" />
+    <ClCompile Include="GltfPose.cpp" />
+    <ClInclude Include="AssetCatalog.h" />
+    <ClInclude Include="GltfModel.h" />
+    <ClInclude Include="GltfMath.h" />
+    <ClInclude Include="ThirdParty\cgltf.h" />
+    <ClInclude Include="ThirdParty\json.hpp" />
+    <None Include="ASSET_LOADER_KR.md" />
+    <None Include="ThirdParty\cgltf.LICENSE" />
+    <None Include="ThirdParty\json.LICENSE" />
+    <None Include="ThirdParty\README.md" />
+    <None Include="Tools\inspect_asset_pack.py" />
+    <CustomBuild Include="Assets\모델.txt">
+      <FileType>Document</FileType>
+      <Message>Copying model loader configuration</Message>
+      <Command>if not exist "$(OutDir)Assets" mkdir "$(OutDir)Assets"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\모델.txt" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\모델.txt</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ASSET_LOADER_INPUT_AUDIT.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PlanetWorld.cpp" />
+    <ClCompile Include="RegionDatabase.cpp" />
+    <ClCompile Include="FarSimulation.cpp" />
+    <ClCompile Include="AssetContract.cpp" />
+    <ClCompile Include="BlenderBridge.cpp" />
+    <ClCompile Include="ActorAnimation.cpp" />
+    <ClCompile Include="AcceptanceChecks.cpp" />
+    <ClInclude Include="PlanetWorld.h" />
+    <ClInclude Include="RegionDatabase.h" />
+    <ClInclude Include="FarSimulation.h" />
+    <ClInclude Include="AssetContract.h" />
+    <ClInclude Include="BlenderBridge.h" />
+    <ClInclude Include="AcceptanceChecks.h" />
+    <None Include="WORLD_COMPLETION_KR.md" />
+    <CustomBuild Include="Assets\LOADER_CONTRACT.md">
+      <FileType>Document</FileType>
+      <Message>Copying %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Assets" mkdir "$(OutDir)Assets"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Assets\LOADER_CONTRACT.md" &gt;nul</Command>
+      <Outputs>$(OutDir)Assets\LOADER_CONTRACT.md</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Tools\export_asset_snapshot.py">
+      <FileType>Document</FileType>
+      <Message>Copying %(Filename)%(Extension)</Message>
+      <Command>if not exist "$(OutDir)Tools" mkdir "$(OutDir)Tools"&#xD;&#xA;copy /Y "%(FullPath)" "$(OutDir)Tools\export_asset_snapshot.py" &gt;nul</Command>
+      <Outputs>$(OutDir)Tools\export_asset_snapshot.py</Outputs>
+    </CustomBuild>
+  </ItemGroup>
 </Project>

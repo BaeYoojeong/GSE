@@ -1,0 +1,29 @@
+코드 컨벤션 - 줄바꿈 중심
+
+적용 대상
+SimpleGame 폴더의 자체 작성 C++ 소스/헤더 전체.
+Dependencies의 외부 라이브러리 헤더와 자동 생성 파일은 제외한다.
+기존 Renderer 코드에 있던 수정 내용은 유지하고 서식만 맞춘다.
+
+규칙
+- Allman 스타일: 함수, 클래스, 구조체, 조건문, 반복문의 여는 중괄호는 다음 줄에 둔다.
+- 짧은 함수나 if/for/while도 한 줄로 합치지 않는다.
+- 조건문/반복문 본문은 한 문장이더라도 중괄호로 감싼다.
+- 실행문은 한 줄에 하나씩 작성한다. 게임 상태의 멤버 변수도 한 줄에 하나씩 선언한다.
+- 들여쓰기는 공백 4칸. namespace 내부도 들여쓴다.
+- 함수와 타입 정의 사이에는 빈 줄을 둔다.
+- 한 논리 단계가 끝나면 빈 줄로 다음 단계를 구분한다.
+- 줄 길이는 110자를 기준으로 긴 인자 목록과 식을 줄바꿈한다.
+- 포인터 표기는 Type* variable 형식으로 맞춘다.
+- include 순서는 기존 프로젝트의 PCH와 OpenGL 의존성을 유지한다.
+- 한글 문자열을 포함한 WorldScene.cpp는 기존 /utf-8 설정을 유지한다.
+- 파일의 기존 라이선스와 주석은 보존한다.
+
+자동 적용
+프로젝트 폴더의 .clang-format이 기준이다.
+clang-format 22.1.3으로 자체 작성 소스/헤더에 적용했다.
+사용 예: clang-format -i --style=file DarkAgeCombat.cpp DarkAgeProgression.cpp DarkAgeGame.h
+현재 실행 게임의 전투는 DarkAgeCombat.cpp, 성장은 DarkAgeProgression.cpp,
+생성 위치는 DarkAgeLayout.cpp, 월드 관리는 DarkAgeWorld.cpp, 화면 출력은 WorldScene.cpp에 둔다.
+구형 LevelOne.cpp는 현재 실행 프로젝트에서 제외된 보존용 코드다.
+새 기능을 하나의 레벨 파일에 몰아넣지 않고 책임별 소스 파일에 배치한다.
