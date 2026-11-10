@@ -183,6 +183,27 @@ namespace GltfModel
         }
     } // namespace
 
+    void ComputeRestBounds(Model& model)
+    {
+        const auto global = Globals(model, {});
+        const auto skins = SkinMatrices(model, global);
+        for (auto& primitive : model.primitives)
+        {
+            primitive.restLow = {1e30f, 1e30f, 1e30f};
+            primitive.restHigh = {-1e30f, -1e30f, -1e30f};
+            for (const auto& vertex : primitive.vertices)
+            {
+                const auto point = Deform(vertex, primitive, global, skins);
+                for (unsigned i = 0; i < 3; ++i)
+                {
+                    primitive.restLow[i] = (std::min)(primitive.restLow[i], point[i]);
+                    primitive.restHigh[i] = (std::max)(primitive.restHigh[i], point[i]);
+                }
+            }
+            primitive.restBoundsValid = !primitive.vertices.empty();
+        }
+    }
+
     bool Project(const Model& model, const Pose& pose, const Projection& projection,
                  std::vector<MeshCache::Vertex>& vertices)
     {
@@ -193,25 +214,45 @@ namespace GltfModel
         {
             return false;
         }
-        const auto rest = Globals(model, {});
-        const auto restSkins = SkinMatrices(model, rest);
         Vector low = {1e30f, 1e30f, 1e30f}, high = {-1e30f, -1e30f, -1e30f};
         size_t selected = 0;
+        bool fallback = false;
+        for (const auto& primitive : model.primitives)
+        {
+            if (Selected(primitive, projection) && !primitive.restBoundsValid)
+            {
+                fallback = true;
+            }
+        }
+        const auto rest = fallback ? Globals(model, {}) : std::vector<Matrix>{};
+        const auto restSkins = fallback ? SkinMatrices(model, rest) : std::vector<std::vector<Matrix>>{};
         for (const auto& primitive : model.primitives)
         {
             if (!Selected(primitive, projection))
             {
                 continue;
             }
-            for (const auto& vertex : primitive.vertices)
+            if (primitive.restBoundsValid)
             {
-                const auto point = Deform(vertex, primitive, rest, restSkins);
                 for (unsigned i = 0; i < 3; ++i)
                 {
-                    low[i] = (std::min)(low[i], point[i]);
-                    high[i] = (std::max)(high[i], point[i]);
+                    low[i] = (std::min)(low[i], primitive.restLow[i]);
+                    high[i] = (std::max)(high[i], primitive.restHigh[i]);
                 }
-                ++selected;
+                selected += primitive.vertices.size();
+            }
+            else
+            {
+                for (const auto& vertex : primitive.vertices)
+                {
+                    const auto point = Deform(vertex, primitive, rest, restSkins);
+                    for (unsigned i = 0; i < 3; ++i)
+                    {
+                        low[i] = (std::min)(low[i], point[i]);
+                        high[i] = (std::max)(high[i], point[i]);
+                    }
+                    ++selected;
+                }
             }
         }
         if (selected == 0)

@@ -10,6 +10,7 @@ Windows 10/11에서 Visual Studio 2022 이상의 ‘C++를 사용한 데스크�
 msbuild BaseProject_SE\SimpleGame.sln /m /p:Configuration=Release /p:Platform=x64
 ```
 
+- [프레임 끊김 원인·개선·재현 방법](BaseProject_SE/SimpleGame/STUTTER_ANALYSIS_KR.md)
 - [GLFW 전환·입력·성능 검증](BaseProject_SE/SimpleGame/GLFW_MIGRATION_KR.md)
 - [포함한 GLFW 라이브러리와 빌드 구성](BaseProject_SE/SimpleGame/Dependencies/GLFW/README_KR.md)
 - [월드·NPC·자산 연동](BaseProject_SE/SimpleGame/WORLD_COMPLETION_KR.md)

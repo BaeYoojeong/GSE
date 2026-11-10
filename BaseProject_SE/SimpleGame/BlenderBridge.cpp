@@ -19,6 +19,15 @@ namespace BlenderBridge
         fs::file_time_type observed = {}, completed = {};
         bool automatic = false, requested = false;
         HANDLE child = nullptr;
+
+        struct Overlay
+        {
+            fs::path directory;
+            fs::file_time_type stamp = {};
+            nlohmann::json document;
+            std::chrono::steady_clock::time_point next = {};
+        } overlay;
+
         std::chrono::steady_clock::time_point started;
 
         std::uint64_t Hash(const std::string& value)
@@ -217,14 +226,45 @@ namespace BlenderBridge
         try
         {
             const auto directory = Cache(sourceRoot);
-            std::ifstream in(directory / L"current.json", std::ios::binary | std::ios::ate);
-            if (!in || in.tellg() > 1024 * 1024)
+            if (overlay.directory != directory)
             {
-                return source;
+                overlay = {};
+                overlay.directory = directory;
             }
-            in.seekg(0);
-            const auto doc = nlohmann::json::parse(in);
-            if (doc.value("schema", "") != "ashen_runtime_overlay_1" || !doc.at("assets").contains(id))
+            const auto now = std::chrono::steady_clock::now();
+            if (now >= overlay.next)
+            {
+                overlay.next = now + std::chrono::seconds(1);
+                const auto stamp = Stamp(directory / L"current.json");
+                if (stamp != overlay.stamp)
+                {
+                    overlay.stamp = stamp;
+                    if (stamp == fs::file_time_type{})
+                    {
+                        overlay.document = {};
+                    }
+                    try
+                    {
+                        std::ifstream in(directory / L"current.json", std::ios::binary | std::ios::ate);
+                        if (in && in.tellg() >= 0 && in.tellg() <= 1024 * 1024)
+                        {
+                            in.seekg(0);
+                            auto candidate = nlohmann::json::parse(in);
+                            if (candidate.value("schema", "") == "ashen_runtime_overlay_1" &&
+                                candidate.at("assets").is_object())
+                            {
+                                overlay.document = std::move(candidate);
+                            }
+                        }
+                    }
+                    catch (const std::exception& error)
+                    {
+                        RenderProfiler::Event("asset_overlay_rejected", error.what());
+                    }
+                }
+            }
+            const auto& doc = overlay.document;
+            if (!doc.is_object() || !doc.at("assets").contains(id))
             {
                 return source;
             }
@@ -247,8 +287,16 @@ namespace BlenderBridge
         return source;
     }
 
+    void InvalidateOverlay()
+    {
+        overlay.next = {};
+        overlay.stamp = {};
+        overlay.document = {};
+    }
+
     void Shutdown()
     {
+        overlay = {};
         if (child)
         {
             // Only this owned export child is stopped; interactive Blender instances are untouched.

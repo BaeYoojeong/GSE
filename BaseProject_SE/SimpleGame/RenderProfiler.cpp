@@ -4,6 +4,7 @@
 #include <windows.h>
 #include "RenderProfiler.h"
 #include "MeshCache.h"
+#include "AsyncLogWriter.h"
 #include <array>
 #include <chrono>
 #include <cstdlib>
@@ -19,13 +20,18 @@ namespace
     constexpr std::size_t PassCount = static_cast<std::size_t>(RenderProfiler::Pass::Count);
     std::uint64_t frame = 0;
     bool recording = false, initialized = false;
-    unsigned consoleEvery = 1;
-    Clock::time_point frameStart, passStart, sessionStart;
+    unsigned consoleEvery = 0;
+    bool consoleTimed = true;
+    Clock::time_point lastConsole;
+    AsyncLogWriter writer;
+    Clock::time_point frameStart, passStart, sessionStart, loopStart;
+    bool loopActive = false;
     RenderProfiler::Pass pass = RenderProfiler::Pass::Other;
 
     struct Counters
     {
         std::uint64_t draws = 0, instanced = 0, instances = 0, useful = 0, submitted = 0, uploads = 0;
+        std::uint64_t cpuHits = 0;
         std::uint64_t builds = 0, builtVertices = 0, hits = 0, misses = 0, diskHits = 0, diskMisses = 0;
         std::uint64_t diskWrites = 0, evictions = 0, failures = 0, visible = 0, culled = 0, textBuilds = 0;
         double buildMs = 0, diskMs = 0;
@@ -51,48 +57,14 @@ namespace
     {
         std::filesystem::path directory;
         std::string name, header;
-        std::ofstream stream;
-        std::size_t bytes = 0;
-        unsigned segment = 0;
+        unsigned channel = 0;
         bool failed = false;
-
-        void Open()
-        {
-            stream.close();
-            stream.clear();
-            stream.open(directory / (name + "-" + std::to_string(segment) + ".csv"),
-                        std::ios::trunc | std::ios::binary);
-            if (!stream)
-            {
-                failed = true;
-                std::cerr << "[Profile] Cannot open " << name << '\n';
-                return;
-            }
-            stream << header << '\n';
-            bytes = header.size() + 1;
-        }
 
         void Write(const std::string& row)
         {
-            if (failed)
+            if (!failed)
             {
-                return;
-            }
-            if (bytes + row.size() > 16 * 1024 * 1024)
-            {
-                segment = (segment + 1) % 4;
-                Open();
-            }
-            if (failed)
-            {
-                return;
-            }
-            stream << row << '\n';
-            bytes += row.size() + 1;
-            if (!stream)
-            {
-                failed = true;
-                std::cerr << "[Profile] Write failed: " << name << '\n';
+                writer.Write(channel, row);
             }
         }
     } frames, events, batches;
@@ -164,7 +136,7 @@ std::string RenderProfiler::Environment(const char* name)
 
 RenderProfiler::FrameCounters RenderProfiler::CurrentFrame()
 {
-    return {counters.draws, counters.builds, counters.uploads};
+    return {counters.draws, counters.builds, counters.uploads, counters.cpuHits, counters.evictions};
 }
 
 void RenderProfiler::Initialize()
@@ -175,9 +147,12 @@ void RenderProfiler::Initialize()
     }
     initialized = true;
     sessionStart = Clock::now();
+    consoleTimed = true;
+    consoleEvery = 0;
     const auto value = Environment("ASHEN_PROFILE_CONSOLE_EVERY");
     if (!value.empty())
     {
+        consoleTimed = false;
         char* end = nullptr;
         const auto interval = std::strtoul(value.c_str(), &end, 10);
         if (end && *end == '\0' && value.front() != '-' && interval <= 1000000)
@@ -202,6 +177,10 @@ void RenderProfiler::Initialize()
         log->directory = directory;
         log->failed = base.empty() || bool(error);
     }
+    frames.channel = 0;
+    events.channel = 1;
+    batches.channel = 2;
+    lastConsole = Clock::now();
     frames.name = "frames";
     frames.header = "frame,cpu_render_swap_ms,draw_calls,instanced_calls,instances,useful_vertices,submitted_"
                     "vertices,upload_bytes,mesh_builds,built_vertices,build_ms,memory_hits,memory_misses,"
@@ -211,15 +190,22 @@ void RenderProfiler::Initialize()
     {
         frames.header += std::string(",") + name + "_calls," + name + "_cpu_ms";
     }
+    frames.header += ",update_cpu_ms,total_tick_cpu_ms,cpu_cache_hits,cpu_cache_bytes,log_rows_dropped";
     events.name = "events";
     events.header = "session_ms,frame,pass,category,detail,bytes,cpu_ms";
     batches.name = "batches";
     batches.header = "frame,pass,flush_reason,instances,useful_vertices,submitted_vertices,padding_ratio";
-    for (Log* log : {&frames, &events, &batches})
+    if (!frames.failed)
     {
-        if (!log->failed)
+        try
         {
-            log->Open();
+            writer.Start(directory, {{{frames.name, frames.header},
+                                      {events.name, events.header},
+                                      {batches.name, batches.header}}});
+        }
+        catch (const std::exception&)
+        {
+            frames.failed = events.failed = batches.failed = true;
         }
     }
     if (frames.failed)
@@ -230,8 +216,8 @@ void RenderProfiler::Initialize()
     {
         std::cout << "[Profile] Logs: " << directory.u8string() << '\n';
     }
-    Event("session",
-          "schema=2; API=OpenGL3.3; CPU timings include swap, not GPU time; build=" __DATE__ " " __TIME__);
+    Event("session", "schema=3; API=OpenGL3.3; full tick includes update; async file logging; CPU timings "
+                     "include swap, not GPU time; build=" __DATE__ " " __TIME__);
     for (auto token : {GL_VENDOR, GL_RENDERER, GL_VERSION})
     {
         const auto* value = glGetString(token);
@@ -242,10 +228,31 @@ void RenderProfiler::Initialize()
     }
 }
 
-void RenderProfiler::BeginFrame()
+void RenderProfiler::BeginLoop()
 {
+    loopStart = Clock::now();
+    loopActive = true;
     ++frame;
     counters = {};
+    recording = true;
+    pass = Pass::Other;
+    passStart = frameStart = loopStart;
+}
+
+void RenderProfiler::CancelLoop()
+{
+    loopActive = false;
+    recording = false;
+}
+
+void RenderProfiler::BeginFrame()
+{
+    if (!loopActive)
+    {
+        ++frame;
+        counters = {};
+        loopStart = Clock::now();
+    }
     recording = true;
     pass = Pass::Other;
     frameStart = passStart = Clock::now();
@@ -265,6 +272,9 @@ void RenderProfiler::EndFrame()
     }
     FinishPass();
     const double ms = Milliseconds(frameStart);
+    const double total = Milliseconds(loopStart);
+    const double update = std::chrono::duration<double, std::milli>(frameStart - loopStart).count();
+    loopActive = false;
     recording = false;
     const auto cache = MeshCache::GetStatistics();
     std::ostringstream row;
@@ -279,19 +289,22 @@ void RenderProfiler::EndFrame()
     {
         row << ',' << counters.calls[i] << ',' << counters.ms[i];
     }
+    row << ',' << update << ',' << total << ',' << counters.cpuHits << ',' << cache.cpuBytes << ','
+        << writer.Dropped();
     frames.Write(row.str());
-    if (consoleEvery && frame % consoleEvery == 0)
+    if (total > 16.67 && frame > 120)
     {
+        Event("frame_spike", "update_ms=" + std::to_string(update) + " render_swap_ms=" + std::to_string(ms),
+              0, total);
+    }
+    if ((consoleTimed && Clock::now() - lastConsole >= std::chrono::seconds(1)) ||
+        (consoleEvery && frame % consoleEvery == 0))
+    {
+        lastConsole = Clock::now();
         std::cout << "[Render] frame=" << frame << " draw_calls=" << counters.draws
                   << " instanced=" << counters.instanced << " instances=" << counters.instances
                   << " mesh_builds=" << counters.builds << " disk_hits=" << counters.diskHits
                   << " upload_bytes=" << counters.uploads << '\n';
-    }
-    if (frame % 120 == 0)
-    {
-        frames.stream.flush();
-        events.stream.flush();
-        batches.stream.flush();
     }
 }
 
@@ -330,12 +343,21 @@ void RenderProfiler::Event(const char* category, const std::string& detail, std:
 
 void RenderProfiler::CacheEvent(const char* action, const std::string& key, std::uint64_t bytes, double ms)
 {
+    if (diagnosticCapture)
+    {
+        Event(action, key, bytes, ms);
+        return;
+    }
     const std::string type = action;
     if (recording)
     {
         if (type == "memory_hit")
         {
             ++counters.hits;
+        }
+        else if (type == "cpu_hit")
+        {
+            ++counters.cpuHits;
         }
         else if (type == "memory_miss")
         {
@@ -367,7 +389,7 @@ void RenderProfiler::CacheEvent(const char* action, const std::string& key, std:
         }
     }
     // Aggregate frequent memory lookups instead of writing an event for every object.
-    if (type != "memory_hit" && type != "memory_miss")
+    if (type != "memory_hit" && type != "memory_miss" && type != "cpu_hit")
     {
         Event(action, key, bytes, ms);
     }
@@ -430,8 +452,6 @@ void RenderProfiler::Shutdown()
         return;
     }
     Event("session", "shutdown");
-    frames.stream.close();
-    events.stream.close();
-    batches.stream.close();
+    writer.Stop();
     initialized = false;
 }

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <chrono>
 
 namespace Ashen
 {
@@ -357,6 +358,19 @@ namespace Ashen
 
     void Game::Stream()
     {
+        struct StreamTiming
+        {
+            std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+            ~StreamTiming()
+            {
+                RenderProfiler::Event(
+                    "chunk_stream", "complete", 0,
+                    std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start)
+                        .count());
+            }
+        } timing;
+
         for (auto it = chunks.begin(); it != chunks.end();)
         {
             const ChunkKey key = it->first;
@@ -531,3 +545,20 @@ namespace Ashen
         return true;
     }
 } // namespace Ashen
+
+void Ashen::Game::BenchmarkTraverse(unsigned frame)
+{
+    if (RenderProfiler::Environment("ASHEN_BENCHMARK") != "1")
+    {
+        return;
+    }
+    const auto location = WorldSociety::Locate({}, {384.f + frame * (TownWorld::PlayerSpeed / 60.f), 600});
+    hero->position = Relative(location);
+    Rebase();
+    hero->moving = true;
+    hero->facing = 2;
+    hero->visualYaw = .785398163f;
+    hero->motion = hero->previousMotion = WorldActor::Motion::Walk;
+    hero->motionSeconds = hero->previousMotionSeconds = frame / 60.f;
+    hero->blendSeconds = 1;
+}

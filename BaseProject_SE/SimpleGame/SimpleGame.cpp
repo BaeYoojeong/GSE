@@ -140,6 +140,10 @@ namespace
     {
         auto& state = State(window);
         const bool background = !state.focused || state.iconified || state.width <= 0 || state.height <= 0;
+        if (!background)
+        {
+            RenderProfiler::BeginLoop();
+        }
         if (background)
         {
             glfwWaitEventsTimeout(.02);
@@ -154,6 +158,14 @@ namespace
         }
         const double now = glfwGetTime();
         const bool drawable = state.focused && !state.iconified && state.width > 0 && state.height > 0;
+        if (drawable && background)
+        {
+            RenderProfiler::BeginLoop();
+        }
+        if (!drawable)
+        {
+            RenderProfiler::CancelLoop();
+        }
         if (drawable || now - lastUpdate >= .02)
         {
             WorldScene::Update(static_cast<float>((std::max)(0., now - lastUpdate)));
@@ -370,7 +382,7 @@ namespace
         state.iconified = glfwGetWindowAttrib(window, GLFW_ICONIFIED) == GLFW_TRUE;
         glfwGetFramebufferSize(window, &state.width, &state.height);
         lifetime.scene = true;
-        if (!WorldScene::Initialize(benchmark.enabled))
+        if (!WorldScene::Initialize(benchmark.enabled, benchmark.stress))
         {
             std::cerr << "Could not initialize the world renderer.\n";
             return 1;

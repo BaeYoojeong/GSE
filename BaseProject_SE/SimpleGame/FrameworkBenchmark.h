@@ -6,7 +6,7 @@ namespace FrameworkBenchmark
 {
     struct Options
     {
-        bool enabled = false, live = false, smoke = false;
+        bool enabled = false, live = false, smoke = false, stress = false, world = false;
         std::filesystem::path output;
     };
 

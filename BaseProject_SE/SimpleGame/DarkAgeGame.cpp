@@ -107,6 +107,27 @@ namespace Ashen
 
     void Game::Update(float seconds)
     {
+        const auto updateStarted = std::chrono::steady_clock::now();
+        const auto autosave = [&]
+        {
+            if (!dirty || saveTimer < 5)
+            {
+                return;
+            }
+            const double updateMs =
+                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - updateStarted)
+                    .count();
+            // Avoid combining a society/streaming tick and a durable commit in one frame.
+            // Busy scenes can defer for at most one simulation second; manual/death saves stay immediate.
+            if (updateMs <= 2 || saveTimer >= 6)
+            {
+                Save();
+            }
+            else if (saveTimer < 5.02f)
+            {
+                RenderProfiler::Event("autosave_deferred", "update_budget_ms=" + std::to_string(updateMs));
+            }
+        };
         const float societySeconds = (std::max)(0.0f, seconds);
         seconds = (std::max)(0.0f, (std::min)(seconds, .05f));
         elapsed += seconds;
@@ -134,10 +155,7 @@ namespace Ashen
             {
                 monitor.Update(*this);
             }
-            if (dirty && saveTimer > 5)
-            {
-                Save();
-            }
+            autosave();
 
             return;
         }
@@ -168,10 +186,7 @@ namespace Ashen
         camera.x += (hero->position.x - camera.x) * amount;
         camera.y += (hero->position.y - camera.y) * amount;
 
-        if (dirty && saveTimer >= 5)
-        {
-            Save();
-        }
+        autosave();
         if (!headless)
         {
             monitor.Update(*this);

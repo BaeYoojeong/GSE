@@ -22,6 +22,7 @@ namespace MeshCache
         GLsizei count = 0;
         std::size_t bytes = 0;
         std::uint64_t lastUse = 0;
+        bool staticGeometry = true;
 
         Mesh() = default;
         Mesh(const Mesh&) = delete;
@@ -36,6 +37,8 @@ namespace MeshCache
         std::size_t bytes = 0;
         std::uint64_t hits = 0;
         std::uint64_t misses = 0;
+        std::size_t cpuBytes = 0;
+        std::uint64_t cpuHits = 0;
     };
 
     constexpr std::size_t MaxMeshes = 1024;
@@ -44,7 +47,8 @@ namespace MeshCache
     bool Initialize();
     GLuint AtlasTexture();
     Handle Find(const Key& key, bool allowDisk = true);
-    Handle Store(const Key& key, const std::vector<Vertex>& vertices, bool persist = true);
+    Handle Store(const Key& key, const std::vector<Vertex>& vertices, bool persist = true,
+                 bool staticGeometry = true);
     void BindVertexLayout();
     Statistics GetStatistics();
     // Release queued handles before shutdown, while the GL context is still current.

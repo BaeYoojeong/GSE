@@ -3,6 +3,7 @@
 #include "DarkAgeRenderer.h"
 #include "PostProcessing.h"
 #include "AssetCatalog.h"
+#include "RenderProfiler.h"
 #include <algorithm>
 #include "WindowInput.h"
 #include <sstream>
@@ -17,6 +18,7 @@ namespace
     bool atlas = false;
     int targetTown = -1;
     unsigned censusPage = 0;
+    bool stressRun = false;
     const AshenRenderer::Color PanelColor = {.035f, .045f, .055f, .92f};
     const AshenRenderer::Color Gold = {.91f, .70f, .40f, 1};
 
@@ -233,7 +235,7 @@ namespace
     }
 } // namespace
 
-bool WorldScene::Initialize(bool benchmark)
+bool WorldScene::Initialize(bool benchmark, bool stress)
 {
     journal = objectives = atlas = false;
     targetTown = -1;
@@ -245,11 +247,15 @@ bool WorldScene::Initialize(bool benchmark)
         return false;
     }
 
-    game.headless = benchmark;
+    stressRun = stress;
+    game.headless = benchmark && !stress;
     ready = game.Initialize(benchmark ? 20261110 : 0);
     if (benchmark)
     {
-        game.farSimulation.reset();
+        if (RenderProfiler::Environment("ASHEN_BENCHMARK_WORKERS") != "1")
+        {
+            game.farSimulation.reset();
+        }
     }
     return ready;
 }
@@ -491,8 +497,12 @@ void WorldScene::BenchmarkStep(unsigned frame)
 {
     game.health = game.MaxHealth();
     game.ClearInput();
-    game.arrows[frame / 180 % 4] = true;
+    game.arrows[frame / 180 % 4] = !stressRun;
     game.Update(1.f / 60.f);
+    if (stressRun)
+    {
+        game.BenchmarkTraverse(frame);
+    }
 }
 
 WorldScene::InputState WorldScene::InspectInput()

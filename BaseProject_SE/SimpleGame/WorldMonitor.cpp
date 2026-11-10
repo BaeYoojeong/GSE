@@ -18,6 +18,9 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 namespace Ashen
 {
@@ -204,6 +207,79 @@ namespace Ashen
         }
     } // namespace
 
+    struct WorldMonitor::Sample
+    {
+        struct ActorSample
+        {
+            Kind kind;
+            ChunkKey chunk;
+            std::uint64_t memory;
+            float health;
+            bool visible;
+        };
+
+        WorldSociety society;
+        ChapterTwo chapter;
+        std::map<ChunkKey, Region> regions;
+        std::map<ChunkKey, ActorId> chunks;
+        std::vector<ActorSample> actors;
+        Location player;
+        bool initialized = false, dead = false, pkEnabled = false, healthy = true, hasWorker = false;
+        std::uint64_t stored = 0, sequence = 0;
+        std::string sessionId;
+        FarSimulation::Statistics worker;
+
+        const Region* RegionAt(ChunkKey key) const
+        {
+            auto found = regions.find(key);
+            return found == regions.end() ? nullptr : &found->second;
+        }
+
+        bool EnemySlotEnabled(ChunkKey key, int) const
+        {
+            return !society.IsVillage(key);
+        }
+
+        bool Dead() const
+        {
+            return dead;
+        }
+
+        bool StorageHealthy() const
+        {
+            return healthy;
+        }
+
+        std::size_t CachedRegionCount() const
+        {
+            return regions.size();
+        }
+
+        std::uint64_t StoredRegionCount() const
+        {
+            return stored;
+        }
+    };
+
+    struct WorldMonitor::Async
+    {
+        std::mutex mutex;
+        std::condition_variable condition;
+        std::unique_ptr<Sample> pending;
+        std::thread thread;
+        bool stopping = false;
+        double completedMs = -1;
+        std::size_t completedBytes = 0;
+        std::string error;
+    };
+
+    WorldMonitor::WorldMonitor() = default;
+
+    WorldMonitor::~WorldMonitor()
+    {
+        Stop();
+    }
+
     void WorldMonitor::Start(const Game& game)
     {
         Stop();
@@ -230,44 +306,151 @@ namespace Ashen
         active = server.Start(port);
         if (active)
         {
-            Update(game, true);
+            try
+            {
+                async = std::make_unique<Async>();
+                async->thread = std::thread(
+                    [this]
+                    {
+                        SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+                        for (;;)
+                        {
+                            std::unique_ptr<Sample> sample;
+                            {
+                                std::unique_lock<std::mutex> lock(async->mutex);
+                                async->condition.wait(lock,
+                                                      [&] { return async->stopping || async->pending; });
+                                if (async->stopping)
+                                {
+                                    return;
+                                }
+                                sample = std::move(async->pending);
+                            }
+                            const auto start = std::chrono::steady_clock::now();
+                            std::string error;
+                            std::size_t bytes = 0;
+                            try
+                            {
+                                auto json = Snapshot(*sample);
+                                bytes = json.size();
+                                server.Publish(std::move(json));
+                            }
+                            catch (const std::exception& failure)
+                            {
+                                error = failure.what();
+                            }
+                            std::lock_guard<std::mutex> lock(async->mutex);
+                            async->completedMs = std::chrono::duration<double, std::milli>(
+                                                     std::chrono::steady_clock::now() - start)
+                                                     .count();
+                            async->completedBytes = bytes;
+                            async->error = std::move(error);
+                        }
+                    });
+                Update(game, true);
+            }
+            catch (const std::exception& failure)
+            {
+                Stop();
+                RenderProfiler::Event("monitor_worker_unavailable", failure.what());
+            }
         }
     }
 
     void WorldMonitor::Update(const Game& game, bool force)
     {
+        if (!active || !async)
+        {
+            return;
+        }
+        double completed = -1;
+        std::size_t bytes = 0;
+        std::string error;
+        {
+            std::lock_guard<std::mutex> lock(async->mutex);
+            completed = async->completedMs;
+            bytes = async->completedBytes;
+            error.swap(async->error);
+            async->completedMs = -1;
+        }
+        if (completed >= 0)
+        {
+            RenderProfiler::Event(error.empty() ? "monitor_json_worker" : "monitor_json_failed", error, bytes,
+                                  completed);
+        }
         const auto now = std::chrono::steady_clock::now();
-        if (!active || (!force && now < nextPublish))
+        if (!force && now < nextPublish)
         {
             return;
         }
         nextPublish = now + std::chrono::seconds(1);
         try
         {
-            ++sequence;
-            std::string json = Snapshot(game);
-            const auto bytes = json.size();
-            server.Publish(std::move(json));
-            const double milliseconds =
-                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - now).count();
-            RenderProfiler::Event("monitor_snapshot",
-                                  "sequence=" + std::to_string(sequence) +
-                                      " npcs=" + std::to_string(game.society.citizens.size()),
-                                  bytes, milliseconds);
+            auto sample = std::make_unique<Sample>();
+            sample->society = game.society;
+            sample->society.nearbyEnemies.clear();
+            sample->chapter = game.chapter;
+            sample->regions = game.regions;
+            sample->chunks = game.chunks;
+            sample->player = game.Absolute(game.hero->position);
+            sample->initialized = game.initialized;
+            sample->dead = game.Dead();
+            sample->pkEnabled = game.pkEnabled;
+            sample->healthy = game.StorageHealthy();
+            sample->stored = game.StoredRegionCount();
+            sample->sessionId = sessionId;
+            sample->sequence = ++sequence;
+            sample->hasWorker = static_cast<bool>(game.farSimulation);
+            if (game.farSimulation)
+            {
+                sample->worker = game.farSimulation->Stats();
+            }
+            for (Actor* base : game.scene.Snapshot())
+            {
+                const auto* actor = dynamic_cast<const WorldActor*>(base);
+                if (actor && actor->IsActive() && actor->health > 0 &&
+                    (actor->kind == Kind::Citizen || actor->kind == Kind::Enemy))
+                {
+                    sample->actors.push_back(
+                        {actor->kind, actor->chunk, actor->memory, actor->health, actor->IsVisible()});
+                }
+            }
+            {
+                std::lock_guard<std::mutex> lock(async->mutex);
+                async->pending = std::move(sample);
+            }
+            async->condition.notify_one();
+            RenderProfiler::Event(
+                "monitor_capture", "sequence=" + std::to_string(sequence), 0,
+                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - now).count());
         }
-        catch (const std::exception& error)
+        catch (const std::exception& failure)
         {
-            std::printf("[Monitor] Snapshot unavailable: %s\n", error.what());
+            RenderProfiler::Event("monitor_capture_failed", failure.what());
         }
     }
 
     void WorldMonitor::Stop()
     {
         active = false;
+        if (async)
+        {
+            {
+                std::lock_guard<std::mutex> lock(async->mutex);
+                async->stopping = true;
+                async->pending.reset();
+            }
+            async->condition.notify_all();
+            if (async->thread.joinable())
+            {
+                async->thread.join();
+            }
+            async.reset();
+        }
         server.Stop();
     }
 
-    std::string WorldMonitor::Snapshot(const Game& game)
+    std::string WorldMonitor::Snapshot(const Sample& game)
     {
         const auto& society = game.society;
         std::map<ChunkKey, VillageSummary> villages;
@@ -289,20 +472,15 @@ namespace Ashen
         {
             knownChunks.insert(pair.first);
         }
-        for (Actor* base : game.scene.Snapshot())
+        for (const auto& actor : game.actors)
         {
-            const auto* actor = dynamic_cast<const WorldActor*>(base);
-            if (!actor || !actor->IsActive() || actor->health <= 0)
+            if (actor.kind == Kind::Citizen && actor.visible)
             {
-                continue;
+                visibleCitizens.insert(actor.memory);
             }
-            if (actor->kind == Kind::Citizen && actor->IsVisible())
+            else if (actor.kind == Kind::Enemy)
             {
-                visibleCitizens.insert(actor->memory);
-            }
-            else if (actor->kind == Kind::Enemy)
-            {
-                ++loadedEnemies[actor->chunk];
+                ++loadedEnemies[actor.chunk];
                 ++ordinaryLoaded;
             }
         }
@@ -373,8 +551,8 @@ namespace Ashen
         Json json;
         json.Object();
         json.Number("schema_version", 1);
-        json.String("session_id", sessionId);
-        json.Number("sequence", sequence);
+        json.String("session_id", game.sessionId);
+        json.Number("sequence", game.sequence);
         json.Number("generated_at_ms", NowMilliseconds());
         json.Number("simulation_seconds", society.simulationSeconds);
         json.Object("game");
@@ -383,7 +561,7 @@ namespace Ashen
         json.Boolean("pk_enabled", game.pkEnabled);
         json.EndObject();
         json.Object("world_streaming");
-        const auto planet = PlanetWorld::Locate(game.Absolute(game.hero->position));
+        const auto planet = PlanetWorld::Locate(game.player);
         json.Number("planet_x", planet.planetX);
         json.Number("planet_y", planet.planetY);
         json.Number("longitude", planet.longitude);
@@ -391,9 +569,9 @@ namespace Ashen
         json.Number("cached_regions", game.CachedRegionCount());
         json.Number("stored_regions", game.StoredRegionCount());
         json.Number("center_travel_seconds", TownWorld::CenterSpacing * ChunkSize / TownWorld::PlayerSpeed);
-        if (game.farSimulation)
+        if (game.hasWorker)
         {
-            const auto worker = game.farSimulation->Stats();
+            const auto worker = game.worker;
             json.Number("worker_batches", worker.accepted);
             json.Number("worker_conflicts", worker.rejected);
             json.Number("worker_residents", worker.residents);

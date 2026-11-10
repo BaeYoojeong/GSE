@@ -648,6 +648,7 @@ namespace AssetCatalog
     void Reload()
     {
         Initialize();
+        BlenderBridge::InvalidateOverlay();
         RefreshCatalog(true);
         configStamp = GetStamp(configPath);
         manifestStamp = GetStamp(config.manifest);

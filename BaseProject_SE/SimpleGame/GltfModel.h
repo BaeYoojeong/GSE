@@ -57,6 +57,8 @@ namespace GltfModel
         std::array<float, 4> color = {1, 1, 1, 1};
         Vector emission = {};
         bool doubleSided = false;
+        Vector restLow = {}, restHigh = {};
+        bool restBoundsValid = false;
     };
     enum class Path
     {
@@ -123,6 +125,7 @@ namespace GltfModel
 
     std::shared_ptr<const Model> Load(const std::filesystem::path& path, std::string& error,
                                       const Limits& limits = {});
+    void ComputeRestBounds(Model& model);
     int FindClip(const Model& model, const std::string& name);
     bool Project(const Model& model, const Pose& pose, const Projection& projection,
                  std::vector<MeshCache::Vertex>& vertices);

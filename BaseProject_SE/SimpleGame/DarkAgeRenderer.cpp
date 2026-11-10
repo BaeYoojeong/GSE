@@ -138,12 +138,12 @@ namespace
             RenderProfiler::MeshBuilt(vertices.size(), ms);
             RenderProfiler::Event("mesh_build", DiskMeshCache::KeyName(key), vertices.size() * sizeof(Vertex),
                                   ms);
-            mesh = MeshCache::Store(key, vertices, persist);
+            mesh = MeshCache::Store(key, vertices, persist, persist);
             if (!mesh)
             {
                 // Release leases before retrying eviction; never overwrite geometry still queued for drawing.
                 RenderBatch::Flush("cache_pressure");
-                mesh = MeshCache::Store(key, vertices, persist);
+                mesh = MeshCache::Store(key, vertices, persist, persist);
             }
         }
         if (mesh)
@@ -1034,6 +1034,7 @@ void AshenRenderer::Resize(int width, int height)
 
 void AshenRenderer::World(const Game& game)
 {
+    DiskMeshCache::Poll();
     AssetCatalog::Poll();
     ++textFrame;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

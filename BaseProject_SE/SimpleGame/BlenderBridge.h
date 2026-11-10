@@ -8,6 +8,7 @@ namespace BlenderBridge
                    const std::filesystem::path& blend, const std::filesystem::path& executable,
                    bool automatic);
     void Request();
+    void InvalidateOverlay();
     bool Poll();
     void Shutdown();
     std::filesystem::path Resolve(const std::filesystem::path& root, const std::string& id,

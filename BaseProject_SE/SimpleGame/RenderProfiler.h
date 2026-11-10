@@ -31,6 +31,7 @@ namespace RenderProfiler
     struct FrameCounters
     {
         std::uint64_t drawCalls = 0, meshBuilds = 0, uploadBytes = 0;
+        std::uint64_t cpuCacheHits = 0, evictions = 0;
     };
 
     FrameCounters CurrentFrame();
@@ -38,6 +39,8 @@ namespace RenderProfiler
     void Shutdown();
     std::filesystem::path DataDirectory();
     std::string Environment(const char* name);
+    void BeginLoop();
+    void CancelLoop();
     void BeginFrame();
     void EndFrame();
     void SetPass(Pass pass);

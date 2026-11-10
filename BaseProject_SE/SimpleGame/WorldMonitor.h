@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include <memory>
 
 namespace Ashen
 {
@@ -12,12 +13,17 @@ namespace Ashen
     class WorldMonitor
     {
       public:
+        WorldMonitor();
+        ~WorldMonitor();
         void Start(const Game& game);
         void Update(const Game& game, bool force = false);
         void Stop();
 
       private:
-        std::string Snapshot(const Game& game);
+        struct Sample;
+        struct Async;
+        std::unique_ptr<Async> async;
+        std::string Snapshot(const Sample& game);
         MonitorServer server;
         bool active = false;
         std::string sessionId;

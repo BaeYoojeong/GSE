@@ -5,7 +5,7 @@
 // Ashen Inheritance: window/input adapter for the actor scene, game rules, and renderer.
 namespace WorldScene
 {
-    bool Initialize(bool benchmark = false);
+    bool Initialize(bool benchmark = false, bool stress = false);
     void Shutdown();
     void Render();
     void Update(float seconds);

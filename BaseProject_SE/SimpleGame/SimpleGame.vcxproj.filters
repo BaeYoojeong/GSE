@@ -326,4 +326,5 @@
     <None Include="Tools\RunFrameworkChecks.ps1" />
     <None Include="Tools\compare_framework_benchmarks.py" />
   </ItemGroup>
+  <ItemGroup><ClCompile Include="AsyncLogWriter.cpp" /><ClInclude Include="AsyncLogWriter.h" /><None Include="STUTTER_ANALYSIS_KR.md" /></ItemGroup>
 </Project>

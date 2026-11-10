@@ -10,6 +10,7 @@
 #include <sstream>
 #include <filesystem>
 #include "RenderProfiler.h"
+#include <chrono>
 
 namespace
 {
@@ -463,6 +464,7 @@ bool Ashen::Game::Load()
 
 bool Ashen::Game::Save()
 {
+    const auto saveStarted = std::chrono::steady_clock::now();
     saveTimer = 0;
 
     if (!writable || regionReadFailed || savePath.empty() || !hero)
@@ -543,6 +545,9 @@ bool Ashen::Game::Save()
         dirty = false;
     }
 
+    RenderProfiler::Event(
+        "world_save", success ? "success" : "failed", data.size(),
+        std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - saveStarted).count());
     return success;
 }
 

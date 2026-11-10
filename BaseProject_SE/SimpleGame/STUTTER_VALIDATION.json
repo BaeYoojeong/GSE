@@ -1,0 +1,510 @@
+{
+  "schema": "ashen_stutter_validation_1",
+  "date": "2026-11-10",
+  "baseline_commit": "c3159c2d863fe09939718f33f49ea0cec8b902db",
+  "baseline_instrumentation": "Common full-tick timers and deterministic traversal harness only; performance changes absent.",
+  "hardware": {
+    "gpu_vendor": "NVIDIA Corporation",
+    "gpu_renderer": "NVIDIA GeForce RTX 5060/PCIe/SSE2",
+    "opengl_version": "4.6.0 NVIDIA 610.88",
+    "framebuffer": {
+      "alpha_bits": 0,
+      "blue_bits": 8,
+      "depth_bits": 24,
+      "green_bits": 8,
+      "red_bits": 8,
+      "samples": 0,
+      "stencil_bits": 8
+    }
+  },
+  "controls": {
+    "seed": 20261110,
+    "vsync": 0,
+    "framebuffer": [
+      1120,
+      784
+    ],
+    "warmup": 120,
+    "traversal_samples": 3600,
+    "world_samples": 1800,
+    "fresh_isolated_profiles": true,
+    "player_saves_touched": false,
+    "hidden_window": true
+  },
+  "builds": [
+    {
+      "configuration": "Debug",
+      "platform": "x64",
+      "passed": true,
+      "compiler_warnings": 0
+    },
+    {
+      "configuration": "Debug",
+      "platform": "x86",
+      "passed": true,
+      "compiler_warnings": 0
+    },
+    {
+      "configuration": "Release",
+      "platform": "x64",
+      "passed": true,
+      "compiler_warnings": 0
+    },
+    {
+      "configuration": "Release",
+      "platform": "x86",
+      "passed": true,
+      "compiler_warnings": 0
+    }
+  ],
+  "window_smoke": {
+    "x64-release": {
+      "passed": true,
+      "checks": 28
+    },
+    "x64-debug": {
+      "passed": true,
+      "checks": 28
+    },
+    "x86-release": {
+      "passed": true,
+      "checks": 28
+    },
+    "x86-debug": {
+      "passed": true,
+      "checks": 28
+    }
+  },
+  "render_identity": {
+    "frozen": {
+      "identical_pixels": true,
+      "identical_draw_sequence": true,
+      "hash": "4056027178796356197"
+    },
+    "moving": {
+      "identical_pixels": true,
+      "identical_draw_sequence": true,
+      "hash": "3769188009404312539"
+    }
+  },
+  "release_traversal": {
+    "aggregation": "median of two independent runs per variant; reversed order for second pair",
+    "before": {
+      "runs": [
+        "release-stress-baseline",
+        "baseline-stress-repeat"
+      ],
+      "run_count": 2,
+      "median_frame_ms": 0.8933500000000001,
+      "p99_frame_ms": 4.768549999999999,
+      "max_frame_ms_median_of_runs": 12.712250000000001,
+      "over_16_67_ms_per_run": [
+        0,
+        0
+      ],
+      "image_hashes": [
+        "9731706157267731720",
+        "9731706157267731720"
+      ]
+    },
+    "after": {
+      "runs": [
+        "actual-stress",
+        "final-stress"
+      ],
+      "run_count": 2,
+      "median_frame_ms": 0.92425,
+      "p99_frame_ms": 2.9012000000000002,
+      "max_frame_ms_median_of_runs": 5.9285,
+      "over_16_67_ms_per_run": [
+        0,
+        0
+      ],
+      "image_hashes": [
+        "9731706157267731720",
+        "9731706157267731720"
+      ]
+    },
+    "p99_reduction_percent": 39.15970263497288,
+    "median_change_percent": 3.4588906923378238
+  },
+  "debug_traversal": {
+    "before": {
+      "backend": "GLFW",
+      "cpu_frame_ms": {
+        "count": 3600,
+        "mean": 18.024333194444452,
+        "median": 14.2498,
+        "p95": 34.3241,
+        "p99": 114.496
+      },
+      "draw_calls": {
+        "count": 3600,
+        "mean": 90.9786111111111,
+        "median": 94.0,
+        "p95": 112.0,
+        "p99": 115.0
+      },
+      "framebuffer": {
+        "alpha_bits": 0,
+        "blue_bits": 8,
+        "depth_bits": 24,
+        "green_bits": 8,
+        "red_bits": 8,
+        "samples": 0,
+        "stencil_bits": 8
+      },
+      "gl_errors": 0,
+      "gpu_ms": {
+        "count": 3600,
+        "mean": 0.2392381866666666,
+        "median": 0.17424,
+        "p95": 0.629504,
+        "p99": 1.058496
+      },
+      "gpu_renderer": "NVIDIA GeForce RTX 5060/PCIe/SSE2",
+      "gpu_vendor": "NVIDIA Corporation",
+      "image_hash_fnv1a64": "9731706157267731720",
+      "image_height": 784,
+      "image_width": 1120,
+      "max_frame_ms": 155.4543,
+      "measured_frames": 3600,
+      "mesh_builds": {
+        "count": 3600,
+        "mean": 0.9236111111111112,
+        "median": 1.0,
+        "p95": 3.0,
+        "p99": 4.0
+      },
+      "mode": "chunk_traversal_stress",
+      "opengl_version": "4.6.0 NVIDIA 610.88",
+      "over_16_67_ms": 1176,
+      "over_33_33_ms": 197,
+      "query_readback": "asynchronous; final drain outside measurement",
+      "schema": "ashen_framework_benchmark_1",
+      "upload_bytes": {
+        "count": 3600,
+        "mean": 119772.48888888888,
+        "median": 109952.0,
+        "p95": 358144.0,
+        "p99": 503936.0
+      },
+      "visible": false,
+      "vsync": 0,
+      "warmup_frames": 120,
+      "world_seed": 20261110
+    },
+    "after": {
+      "backend": "GLFW",
+      "cache_evictions": {
+        "count": 3600,
+        "mean": 0.9041666666666667,
+        "median": 0.0,
+        "p95": 3.0,
+        "p99": 7.0
+      },
+      "cpu_cache_hits": {
+        "count": 3600,
+        "mean": 0.14666666666666667,
+        "median": 0.0,
+        "p95": 1.0,
+        "p99": 2.0
+      },
+      "cpu_frame_ms": {
+        "count": 3600,
+        "mean": 16.938499583333368,
+        "median": 14.5856,
+        "p95": 31.6295,
+        "p99": 46.7901
+      },
+      "draw_calls": {
+        "count": 3600,
+        "mean": 90.9786111111111,
+        "median": 94.0,
+        "p95": 112.0,
+        "p99": 115.0
+      },
+      "framebuffer": {
+        "alpha_bits": 0,
+        "blue_bits": 8,
+        "depth_bits": 24,
+        "green_bits": 8,
+        "red_bits": 8,
+        "samples": 0,
+        "stencil_bits": 8
+      },
+      "gl_errors": 0,
+      "gpu_ms": {
+        "count": 3600,
+        "mean": 0.30194503111111154,
+        "median": 0.179936,
+        "p95": 0.662816,
+        "p99": 1.2448
+      },
+      "gpu_renderer": "NVIDIA GeForce RTX 5060/PCIe/SSE2",
+      "gpu_vendor": "NVIDIA Corporation",
+      "image_hash_fnv1a64": "9731706157267731720",
+      "image_height": 784,
+      "image_width": 1120,
+      "max_frame_ms": 79.0036,
+      "measured_frames": 3600,
+      "mesh_builds": {
+        "count": 3600,
+        "mean": 0.8169444444444445,
+        "median": 1.0,
+        "p95": 3.0,
+        "p99": 4.0
+      },
+      "mode": "chunk_traversal_stress",
+      "opengl_version": "4.6.0 NVIDIA 610.88",
+      "over_16_67_ms": 1220,
+      "over_33_33_ms": 146,
+      "query_readback": "asynchronous; final drain outside measurement",
+      "schema": "ashen_framework_benchmark_1",
+      "upload_bytes": {
+        "count": 3600,
+        "mean": 122969.44888888889,
+        "median": 109888.0,
+        "p95": 357952.0,
+        "p99": 499456.0
+      },
+      "visible": false,
+      "vsync": 0,
+      "warmup_frames": 120,
+      "world_seed": 20261110
+    },
+    "scope": "Unoptimized Debug, deterministic far-worker-disabled fallback; substantial stutter remains."
+  },
+  "realtime_release_world": {
+    "backend": "GLFW",
+    "cache_evictions": {
+      "count": 1800,
+      "mean": 0.8477777777777777,
+      "median": 0.0,
+      "p95": 3.0,
+      "p99": 6.0
+    },
+    "cpu_cache_hits": {
+      "count": 1800,
+      "mean": 0.12333333333333334,
+      "median": 0.0,
+      "p95": 1.0,
+      "p99": 1.0
+    },
+    "cpu_frame_ms": {
+      "count": 1800,
+      "mean": 1.8810623888888893,
+      "median": 1.3641,
+      "p95": 4.4576,
+      "p99": 6.8399
+    },
+    "draw_calls": {
+      "count": 1800,
+      "mean": 99.80666666666667,
+      "median": 99.0,
+      "p95": 114.0,
+      "p99": 117.0
+    },
+    "framebuffer": {
+      "alpha_bits": 0,
+      "blue_bits": 8,
+      "depth_bits": 24,
+      "green_bits": 8,
+      "red_bits": 8,
+      "samples": 0,
+      "stencil_bits": 8
+    },
+    "gl_errors": 0,
+    "gpu_ms": {
+      "count": 1800,
+      "mean": 0.23702540444444467,
+      "median": 0.190208,
+      "p95": 0.519872,
+      "p99": 0.976512
+    },
+    "gpu_renderer": "NVIDIA GeForce RTX 5060/PCIe/SSE2",
+    "gpu_vendor": "NVIDIA Corporation",
+    "image_hash_fnv1a64": "7329407179367620396",
+    "image_height": 784,
+    "image_width": 1120,
+    "max_frame_ms": 14.7196,
+    "measured_frames": 1800,
+    "mesh_builds": {
+      "count": 1800,
+      "mean": 0.8094444444444444,
+      "median": 1.0,
+      "p95": 3.0,
+      "p99": 4.0
+    },
+    "mode": "realtime_world_workers",
+    "opengl_version": "4.6.0 NVIDIA 610.88",
+    "over_16_67_ms": 0,
+    "over_33_33_ms": 0,
+    "query_readback": "asynchronous; final drain outside measurement",
+    "schema": "ashen_framework_benchmark_1",
+    "upload_bytes": {
+      "count": 1800,
+      "mean": 121565.22666666667,
+      "median": 100672.0,
+      "p95": 326784.0,
+      "p99": 489216.0
+    },
+    "visible": false,
+    "vsync": 0,
+    "warmup_frames": 120,
+    "world_seed": 20261110
+  },
+  "realtime_debug_world": {
+    "backend": "GLFW",
+    "cache_evictions": {
+      "count": 1800,
+      "mean": 0.8477777777777777,
+      "median": 0.0,
+      "p95": 3.0,
+      "p99": 6.0
+    },
+    "cpu_cache_hits": {
+      "count": 1800,
+      "mean": 0.12333333333333334,
+      "median": 0.0,
+      "p95": 1.0,
+      "p99": 1.0
+    },
+    "cpu_frame_ms": {
+      "count": 1800,
+      "mean": 18.589201000000017,
+      "median": 16.019,
+      "p95": 33.33,
+      "p99": 49.2857
+    },
+    "draw_calls": {
+      "count": 1800,
+      "mean": 99.80666666666667,
+      "median": 99.0,
+      "p95": 114.0,
+      "p99": 117.0
+    },
+    "framebuffer": {
+      "alpha_bits": 0,
+      "blue_bits": 8,
+      "depth_bits": 24,
+      "green_bits": 8,
+      "red_bits": 8,
+      "samples": 0,
+      "stencil_bits": 8
+    },
+    "gl_errors": 0,
+    "gpu_ms": {
+      "count": 1800,
+      "mean": 0.3653424000000001,
+      "median": 0.20192,
+      "p95": 0.858528,
+      "p99": 1.379456
+    },
+    "gpu_renderer": "NVIDIA GeForce RTX 5060/PCIe/SSE2",
+    "gpu_vendor": "NVIDIA Corporation",
+    "image_hash_fnv1a64": "7329407179367620396",
+    "image_height": 784,
+    "image_width": 1120,
+    "max_frame_ms": 90.5074,
+    "measured_frames": 1800,
+    "mesh_builds": {
+      "count": 1800,
+      "mean": 0.8094444444444444,
+      "median": 1.0,
+      "p95": 3.0,
+      "p99": 4.0
+    },
+    "mode": "realtime_world_workers",
+    "opengl_version": "4.6.0 NVIDIA 610.88",
+    "over_16_67_ms": 803,
+    "over_33_33_ms": 90,
+    "query_readback": "asynchronous; final drain outside measurement",
+    "schema": "ashen_framework_benchmark_1",
+    "upload_bytes": {
+      "count": 1800,
+      "mean": 121565.22666666667,
+      "median": 100672.0,
+      "p95": 326784.0,
+      "p99": 489216.0
+    },
+    "visible": false,
+    "vsync": 0,
+    "warmup_frames": 120,
+    "world_seed": 20261110
+  },
+  "acceptance": {
+    "passed": true,
+    "checks": 660,
+    "cache_checks": [
+      {
+        "name": "async_mesh_shutdown_drains_writes",
+        "passed": true
+      },
+      {
+        "name": "async_mesh_roundtrip_exact",
+        "passed": true
+      },
+      {
+        "name": "pending_mesh_read_never_blocks_or_returns_unvalidated_data",
+        "passed": true
+      },
+      {
+        "name": "corrupt_mesh_rejected",
+        "passed": true
+      }
+    ],
+    "autosave_deadline_check": {
+      "name": "overdue_autosave_not_starved",
+      "passed": true
+    }
+  },
+  "profile_integrity": {
+    "final-stress": {
+      "max_cpu_cache_bytes": 67108824,
+      "cpu_cache_hits": 528,
+      "log_rows_dropped": 0,
+      "worker_corrupt_file_rejections": 0,
+      "max_monitor_capture_ms": 0.125
+    },
+    "final-world": {
+      "max_cpu_cache_bytes": 67108824,
+      "cpu_cache_hits": 222,
+      "log_rows_dropped": 0,
+      "worker_corrupt_file_rejections": 0,
+      "max_monitor_capture_ms": 0.39
+    },
+    "final-debug-world": {
+      "max_cpu_cache_bytes": 67108824,
+      "cpu_cache_hits": 222,
+      "log_rows_dropped": 0,
+      "worker_corrupt_file_rejections": 0,
+      "max_monitor_capture_ms": 1.122
+    },
+    "final-acceptance": {
+      "max_cpu_cache_bytes": 0,
+      "cpu_cache_hits": 0,
+      "log_rows_dropped": 0,
+      "worker_corrupt_file_rejections": 3,
+      "max_monitor_capture_ms": 0
+    }
+  },
+  "monitor_http": {
+    "snapshots_received": 56,
+    "last": {
+      "villages": 7,
+      "schema": 1,
+      "events": 104,
+      "npcs": 210,
+      "worker_batches": 159,
+      "sequence": 58
+    },
+    "all_snapshots_valid": true
+  },
+  "remaining_costs": [
+    "Synchronous SQLite FULL commits are retained; autosaves can defer up to one simulation second to avoid a heavy update.",
+    "Chunk actor construction and GL uploads remain on the main thread.",
+    "Unoptimized Debug still has significant simulation and rendering spikes; Release is the performance reference.",
+    "CPU full-tick measurements are not presentation interval measurements; hidden-window results are hardware/workload specific."
+  ]
+}

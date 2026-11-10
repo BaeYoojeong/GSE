@@ -356,6 +356,7 @@ namespace GltfModel
             model->bytes += totalVertices * sizeof(Vertex) + totalIndices * sizeof(unsigned) +
                             keyValues * (sizeof(Rotation) + sizeof(float));
             Require(!model->primitives.empty(), "no_visible_geometry");
+            ComputeRestBounds(*model);
             return model;
         }
         catch (const std::exception& exception)

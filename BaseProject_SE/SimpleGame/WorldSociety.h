@@ -240,6 +240,7 @@ namespace Ashen
 
       private:
         friend class FarSimulation;
+        friend class WorldMonitor;
         bool backgroundSimulation = false;
         std::vector<SocietyEvent> backgroundEvents;
         bool expandedWorld = false;

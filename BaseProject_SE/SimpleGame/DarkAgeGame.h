@@ -41,6 +41,7 @@ namespace Ashen
         }
 
         void Update(float seconds);
+        void BenchmarkTraverse(unsigned frame);
         void Interact();
         void Give();
         void ChooseEmotion(Emotion emotion);

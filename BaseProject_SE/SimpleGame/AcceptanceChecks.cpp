@@ -6,6 +6,8 @@
 #include "DarkAgeGame.h"
 #include "AssetCatalog.h"
 #include "RenderProfiler.h"
+#include "DiskMeshCache.h"
+#include <cstring>
 #include "ThirdParty/json.hpp"
 #include <fstream>
 #include <iomanip>
@@ -57,6 +59,46 @@ namespace Ashen
         game.headless = true;
         try
         {
+            if (RenderProfiler::Environment("ASHEN_MESH_DISK_CACHE") != "0")
+            {
+                const MeshCache::Key cacheKey = {0x54455354, 1};
+                const std::vector<MeshCache::Vertex> expected = {
+                    {0, 0, 1, 0, 0, 1, 0, 0, 1}, {1, 0, 0, 1, 0, 1, 0, 0, 1}, {0, 1, 0, 0, 1, 1, 0, 0, 1}};
+                DiskMeshCache::Initialize();
+                DiskMeshCache::Save(cacheKey, expected);
+                DiskMeshCache::Shutdown();
+                const auto cacheFile = directory / L"MeshCache" /
+                                       ("geometry-" + std::to_string(DiskMeshCache::GeometryRevision)) /
+                                       (DiskMeshCache::KeyName(cacheKey) + ".mesh");
+                require(std::filesystem::is_regular_file(cacheFile), "async_mesh_shutdown_drains_writes");
+                DiskMeshCache::Initialize();
+                std::vector<MeshCache::Vertex> actual;
+                bool loaded = false;
+                for (unsigned attempt = 0;
+                     attempt < 2000 && !(loaded = DiskMeshCache::Load(cacheKey, actual)); ++attempt)
+                {
+                    Sleep(1);
+                }
+                require(loaded && actual.size() == expected.size() &&
+                            std::memcmp(actual.data(), expected.data(), actual.size() * sizeof(actual[0])) ==
+                                0,
+                        "async_mesh_roundtrip_exact");
+                DiskMeshCache::Shutdown();
+                {
+                    std::fstream corrupt(cacheFile, std::ios::binary | std::ios::in | std::ios::out);
+                    corrupt.seekp(64);
+                    corrupt.put(1);
+                }
+                DiskMeshCache::Initialize();
+                require(!DiskMeshCache::Load(cacheKey, actual) && actual.empty(),
+                        "pending_mesh_read_never_blocks_or_returns_unvalidated_data");
+                DiskMeshCache::Shutdown();
+                // An invalid file must not enter the ready cache, including startup prefetch.
+                DiskMeshCache::Initialize();
+                Sleep(20);
+                require(!DiskMeshCache::Load(cacheKey, actual) && actual.empty(), "corrupt_mesh_rejected");
+                DiskMeshCache::Shutdown();
+            }
             require(game.Initialize() && game.StorageHealthy(), "new_isolated_profile");
             require(game.society.citizens.size() == 210, "seven_towns_210_residents");
             std::array<unsigned, TownWorld::Count> populations = {};
@@ -175,6 +217,10 @@ namespace Ashen
                             npc->village == pair.second.village,
                         "migration_preserves_identity_wealth_house");
             }
+            game.dirty = true;
+            game.saveTimer = 6;
+            game.Update(0);
+            require(game.saveTimer == 0 && !game.dirty, "overdue_autosave_not_starved");
             require(game.Save(), "atomic_world_commit");
             const auto coins = game.society.Find(npcId)->coins;
             game.Shutdown();
@@ -191,6 +237,7 @@ namespace Ashen
         {
             report["error"] = error.what();
         }
+        DiskMeshCache::Shutdown();
         game.Shutdown();
         AssetCatalog::Shutdown();
         RenderProfiler::Shutdown();

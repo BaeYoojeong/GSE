@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <thread>
 
 namespace FrameworkBenchmark
 {
@@ -24,7 +25,8 @@ namespace FrameworkBenchmark
         Options options;
         if (argc < 2 ||
             (std::string(argv[1]) != "--benchmark" && std::string(argv[1]) != "--benchmark-live" &&
-             std::string(argv[1]) != "--window-smoke"))
+             std::string(argv[1]) != "--window-smoke" && std::string(argv[1]) != "--benchmark-stress" &&
+             std::string(argv[1]) != "--benchmark-world"))
         {
             return options;
         }
@@ -36,7 +38,8 @@ namespace FrameworkBenchmark
             {
                 LocalFree(wide);
             }
-            throw std::runtime_error("Usage: SimpleGame --benchmark[-live] <new-absolute-directory>");
+            throw std::runtime_error(
+                "Usage: SimpleGame --benchmark[-live|-stress|-world] <new-absolute-directory>");
         }
         options.output = wide[2];
         LocalFree(wide);
@@ -50,7 +53,15 @@ namespace FrameworkBenchmark
         SetEnvironmentVariableW(L"ASHEN_BENCHMARK", L"1");
         options.smoke = std::string(argv[1]) == "--window-smoke";
         options.enabled = true;
-        options.live = std::string(argv[1]) == "--benchmark-live";
+        options.world = std::string(argv[1]) == "--benchmark-world";
+        options.stress = options.world || std::string(argv[1]) == "--benchmark-stress";
+        SetEnvironmentVariableW(L"ASHEN_BENCHMARK_WORKERS", options.world ? L"1" : L"0");
+        options.live = options.stress || std::string(argv[1]) == "--benchmark-live";
+        if (options.stress)
+        {
+            const auto port = std::to_string(20000 + GetCurrentProcessId() % 10000);
+            SetEnvironmentVariableA("ASHEN_MONITOR_PORT", port.c_str());
+        }
         return options;
     }
 
@@ -59,7 +70,8 @@ namespace FrameworkBenchmark
     {
         using Clock = std::chrono::steady_clock;
         using Json = nlohmann::json;
-        constexpr unsigned Warmup = 120, Samples = 600, QueryCount = 64;
+        const unsigned Warmup = 120, Samples = options.world ? 1800 : options.stress ? 3600 : 600;
+        constexpr unsigned QueryCount = 64;
 
         struct Frame
         {
@@ -112,11 +124,13 @@ namespace FrameworkBenchmark
             return true;
         };
         unsigned glErrors = 0;
+        const auto pacingStart = Clock::now();
         for (unsigned frame = 0; frame < Warmup + Samples; ++frame)
         {
             auto& query = queries[frame % QueryCount];
             const bool timed = resolve(query, false);
             const auto start = Clock::now();
+            RenderProfiler::BeginLoop();
             poll();
             if (options.live)
             {
@@ -141,6 +155,11 @@ namespace FrameworkBenchmark
             {
                 frames[frame - Warmup].cpu = cpu;
                 frames[frame - Warmup].counts = RenderProfiler::CurrentFrame();
+            }
+            if (options.world)
+            {
+                std::this_thread::sleep_until(
+                    pacingStart + std::chrono::microseconds(static_cast<long long>(frame + 1) * 16667));
             }
             if (frame % 60 == 0 && glGetError() != GL_NO_ERROR)
             {
@@ -174,7 +193,10 @@ namespace FrameworkBenchmark
         };
         Json result = {{"schema", "ashen_framework_benchmark_1"},
                        {"backend", backend},
-                       {"mode", options.live ? "scripted_simulation" : "frozen_scene"},
+                       {"mode", options.world    ? "realtime_world_workers"
+                                : options.stress ? "chunk_traversal_stress"
+                                : options.live   ? "scripted_simulation"
+                                                 : "frozen_scene"},
                        {"warmup_frames", Warmup},
                        {"measured_frames", Samples},
                        {"world_seed", 20261110},
@@ -202,9 +224,9 @@ namespace FrameworkBenchmark
             glGetIntegerv(item.second, &value);
             result["framebuffer"][item.first] = value;
         }
-        std::vector<double> cpu, gpu, draws, builds, uploads;
+        std::vector<double> cpu, gpu, draws, builds, uploads, cpuHits, evictions;
         std::ofstream csv(options.output / L"framework_frames.csv");
-        csv << "frame,cpu_frame_ms,gpu_ms,draw_calls,mesh_builds,upload_bytes\n";
+        csv << "frame,cpu_frame_ms,gpu_ms,draw_calls,mesh_builds,upload_bytes,cpu_cache_hits,evictions\n";
         for (size_t i = 0; i < frames.size(); ++i)
         {
             const auto& frame = frames[i];
@@ -216,13 +238,23 @@ namespace FrameworkBenchmark
             draws.push_back(static_cast<double>(frame.counts.drawCalls));
             builds.push_back(static_cast<double>(frame.counts.meshBuilds));
             uploads.push_back(static_cast<double>(frame.counts.uploadBytes));
+            cpuHits.push_back(static_cast<double>(frame.counts.cpuCacheHits));
+            evictions.push_back(static_cast<double>(frame.counts.evictions));
             csv << i << ',' << frame.cpu << ',' << frame.gpu << ',' << frame.counts.drawCalls << ','
-                << frame.counts.meshBuilds << ',' << frame.counts.uploadBytes << '\n';
+                << frame.counts.meshBuilds << ',' << frame.counts.uploadBytes << ','
+                << frame.counts.cpuCacheHits << ',' << frame.counts.evictions << '\n';
         }
         result["cpu_frame_ms"] = statistics(cpu);
+        result["over_16_67_ms"] =
+            std::count_if(cpu.begin(), cpu.end(), [](double value) { return value > 16.67; });
+        result["over_33_33_ms"] =
+            std::count_if(cpu.begin(), cpu.end(), [](double value) { return value > 33.33; });
+        result["max_frame_ms"] = *std::max_element(cpu.begin(), cpu.end());
         result["gpu_ms"] = statistics(gpu);
         result["draw_calls"] = statistics(draws);
         result["mesh_builds"] = statistics(builds);
+        result["cpu_cache_hits"] = statistics(cpuHits);
+        result["cache_evictions"] = statistics(evictions);
         result["upload_bytes"] = statistics(uploads);
         // A separate unmeasured frame verifies that the window migration preserves rendered pixels.
         RenderProfiler::BeginFrame();

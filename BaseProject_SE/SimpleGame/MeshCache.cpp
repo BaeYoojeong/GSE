@@ -17,7 +17,43 @@ namespace
     std::vector<Span> freeSpans;
     GLuint atlasBuffer = 0, atlasTexture = 0;
     std::size_t allocatedBytes = 0;
-    std::uint64_t accessCounter = 0, hits = 0, misses = 0;
+    std::uint64_t accessCounter = 0, hits = 0, misses = 0, cpuHits = 0;
+
+    struct CpuMesh
+    {
+        std::vector<MeshCache::Vertex> vertices;
+        std::uint64_t use = 0;
+        bool fixed = true;
+    };
+
+    std::map<MeshCache::Key, CpuMesh> cpuMeshes;
+    std::size_t cpuBytes = 0;
+    constexpr std::size_t CpuLimit = 64 * 1024 * 1024;
+
+    void Remember(const MeshCache::Key& key, const std::vector<MeshCache::Vertex>& vertices, bool fixed)
+    {
+        auto found = cpuMeshes.find(key);
+        if (found != cpuMeshes.end())
+        {
+            found->second.use = ++accessCounter;
+            return;
+        }
+        const auto bytes = vertices.size() * sizeof(MeshCache::Vertex);
+        if (bytes > CpuLimit)
+        {
+            return;
+        }
+        while ((cpuBytes + bytes > CpuLimit || cpuMeshes.size() >= 4096) && !cpuMeshes.empty())
+        {
+            auto victim =
+                std::min_element(cpuMeshes.begin(), cpuMeshes.end(),
+                                 [](const auto& a, const auto& b) { return a.second.use < b.second.use; });
+            cpuBytes -= victim->second.vertices.size() * sizeof(MeshCache::Vertex);
+            cpuMeshes.erase(victim);
+        }
+        cpuMeshes.emplace(key, CpuMesh{vertices, ++accessCounter, fixed});
+        cpuBytes += bytes;
+    }
 
     void Free(Span span)
     {
@@ -38,7 +74,7 @@ namespace
         }
     }
 
-    bool Allocate(std::uint32_t count, std::uint32_t& first)
+    bool Allocate(std::uint32_t count, std::uint32_t& first, bool fixed)
     {
         for (;;)
         {
@@ -65,7 +101,10 @@ namespace
             {
                 // Queued instances own handles. Their atlas ranges cannot be reused until flushed.
                 if (it->second.use_count() == 1 &&
-                    (oldest == meshes.end() || it->second->lastUse < oldest->second->lastUse))
+                    (oldest == meshes.end() ||
+                     (it->second->staticGeometry == fixed && oldest->second->staticGeometry != fixed) ||
+                     ((it->second->staticGeometry == fixed) == (oldest->second->staticGeometry == fixed) &&
+                      it->second->lastUse < oldest->second->lastUse)))
                 {
                     oldest = it;
                 }
@@ -135,6 +174,18 @@ MeshCache::Handle MeshCache::Find(const Key& key, bool allowDisk)
     }
     ++misses;
     RenderProfiler::CacheEvent("memory_miss", "");
+    const auto cpu = cpuMeshes.find(key);
+    if (cpu != cpuMeshes.end())
+    {
+        ++cpuHits;
+        cpu->second.use = ++accessCounter;
+        auto mesh = Store(key, cpu->second.vertices, false, cpu->second.fixed);
+        if (mesh)
+        {
+            RenderProfiler::CacheEvent("cpu_hit", "");
+            return mesh;
+        }
+    }
     std::vector<Vertex> vertices;
     if (allowDisk && DiskMeshCache::Load(key, vertices))
     {
@@ -143,7 +194,8 @@ MeshCache::Handle MeshCache::Find(const Key& key, bool allowDisk)
     return {};
 }
 
-MeshCache::Handle MeshCache::Store(const Key& key, const std::vector<Vertex>& vertices, bool persist)
+MeshCache::Handle MeshCache::Store(const Key& key, const std::vector<Vertex>& vertices, bool persist,
+                                   bool staticGeometry)
 {
     auto found = meshes.find(key);
     if (found != meshes.end())
@@ -167,8 +219,9 @@ MeshCache::Handle MeshCache::Store(const Key& key, const std::vector<Vertex>& ve
         }
         packed.push_back({v.x, v.y, v.r, v.g, v.b, v.a, v.u, v.v, v.emission, 0, 0, 0});
     }
+    Remember(key, vertices, staticGeometry);
     std::uint32_t first = 0;
-    if (!Allocate(static_cast<std::uint32_t>(vertices.size()), first))
+    if (!Allocate(static_cast<std::uint32_t>(vertices.size()), first, staticGeometry))
     {
         RenderProfiler::CacheEvent("atlas_full", DiskMeshCache::KeyName(key));
         return {};
@@ -182,6 +235,7 @@ MeshCache::Handle MeshCache::Store(const Key& key, const std::vector<Vertex>& ve
     mesh->count = static_cast<GLsizei>(vertices.size());
     mesh->bytes = bytes;
     mesh->lastUse = ++accessCounter;
+    mesh->staticGeometry = staticGeometry;
     allocatedBytes += bytes;
     meshes.emplace(key, mesh);
     if (persist)
@@ -209,11 +263,15 @@ void MeshCache::BindVertexLayout()
 
 MeshCache::Statistics MeshCache::GetStatistics()
 {
-    return {meshes.size(), allocatedBytes, hits, misses};
+    return {meshes.size(), allocatedBytes, hits, misses, cpuBytes, cpuHits};
 }
 
 void MeshCache::Shutdown()
 {
+    DiskMeshCache::Shutdown();
+    cpuMeshes.clear();
+    cpuBytes = 0;
+    cpuHits = 0;
     meshes.clear();
     freeSpans.clear();
     if (atlasTexture)
