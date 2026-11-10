@@ -414,7 +414,8 @@ namespace AssetCatalog
                 config = std::move(candidate);
                 catalog = std::move(loaded);
                 BlenderBridge::Configure(config.root, config.manifest, config.blend, config.blender,
-                                         config.autoExport);
+                                         config.autoExport &&
+                                             RenderProfiler::Environment("ASHEN_BENCHMARK") != "1");
                 guideStamps.clear();
                 for (const auto& path : config.guides)
                 {

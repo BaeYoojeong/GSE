@@ -4,7 +4,7 @@
 #include "PostProcessing.h"
 #include "AssetCatalog.h"
 #include <algorithm>
-#include "Dependencies/freeglut.h"
+#include "WindowInput.h"
 #include <sstream>
 
 namespace
@@ -233,7 +233,7 @@ namespace
     }
 } // namespace
 
-bool WorldScene::Initialize()
+bool WorldScene::Initialize(bool benchmark)
 {
     journal = objectives = atlas = false;
     targetTown = -1;
@@ -245,7 +245,12 @@ bool WorldScene::Initialize()
         return false;
     }
 
-    ready = game.Initialize();
+    game.headless = benchmark;
+    ready = game.Initialize(benchmark ? 20261110 : 0);
+    if (benchmark)
+    {
+        game.farSimulation.reset();
+    }
     return ready;
 }
 
@@ -292,7 +297,7 @@ void WorldScene::ClearInput()
     game.ClearInput();
 }
 
-void WorldScene::Arrow(int key, bool down)
+void WorldScene::Arrow(SpecialKey key, bool down)
 {
     if (!ready)
     {
@@ -305,51 +310,51 @@ void WorldScene::Arrow(int key, bool down)
 
         switch (key)
         {
-        case GLUT_KEY_F1:
+        case SpecialKey::F1:
             fx.enabled = !fx.enabled;
             game.Notify(fx.enabled ? L"Bloom · 비넷 · 가장자리 블러 켜짐"
                                    : L"연출 효과 꺼짐 · HDR 톤 매핑은 유지합니다.");
             return;
-        case GLUT_KEY_F2:
+        case SpecialKey::F2:
             fx.bloom = !fx.bloom;
             game.Notify(fx.bloom ? L"Bloom 켜짐" : L"Bloom 꺼짐 · 광원의 중심부만 남습니다.");
             return;
-        case GLUT_KEY_F3:
+        case SpecialKey::F3:
             fx.vignette = !fx.vignette;
             game.Notify(fx.vignette ? L"비넷 켜짐" : L"비넷 꺼짐");
             return;
-        case GLUT_KEY_F4:
+        case SpecialKey::F4:
             fx.edgeBlur = !fx.edgeBlur;
             game.Notify(fx.edgeBlur ? L"가장자리 블러 켜짐" : L"가장자리 블러 꺼짐");
             return;
-        case GLUT_KEY_F5:
-        case GLUT_KEY_F6:
+        case SpecialKey::F5:
+        case SpecialKey::F6:
             fx.exposure =
-                (std::max)(.25f, (std::min)(4.0f, fx.exposure + (key == GLUT_KEY_F5 ? -.05f : .05f)));
+                (std::max)(.25f, (std::min)(4.0f, fx.exposure + (key == SpecialKey::F5 ? -.05f : .05f)));
             game.Notify(L"HDR 노출 " + std::to_wstring(static_cast<int>(fx.exposure * 100 + .5f)) + L"%");
             return;
-        case GLUT_KEY_F7:
+        case SpecialKey::F7:
             PostProcessing::Reset();
             game.Notify(L"HDR · Bloom · 비넷 · 가장자리 블러 기본값을 복원했습니다.");
             return;
-        case GLUT_KEY_F10:
+        case SpecialKey::F10:
             AssetCatalog::ExportBlender();
             game.Notify(L"Blender 자산 내보내기를 요청했습니다. 완료 후 자동 반영됩니다.");
             return;
-        case GLUT_KEY_F9:
+        case SpecialKey::F9:
             AssetCatalog::Reload();
             game.Notify(AssetCatalog::Status());
             return;
-        case GLUT_KEY_F8:
+        case SpecialKey::F8:
             game.Notify(game.Save() ? L"삶과 세계의 기록을 저장했습니다."
                                     : L"저장 실패 · 저장 폴더를 확인하세요.");
             return;
         }
     }
 
-    if (key >= GLUT_KEY_LEFT && key <= GLUT_KEY_DOWN)
+    if (key >= SpecialKey::Left && key <= SpecialKey::Down)
     {
-        game.arrows[key - GLUT_KEY_LEFT] =
+        game.arrows[static_cast<unsigned>(key) - static_cast<unsigned>(SpecialKey::Left)] =
             down && !journal && !census && !objectives && !atlas && game.dialogue.empty();
     }
 }
@@ -480,4 +485,25 @@ void WorldScene::Key(unsigned char key, bool down)
     {
         game.ChooseEmotion(static_cast<Ashen::Emotion>(key - '1'));
     }
+}
+
+void WorldScene::BenchmarkStep(unsigned frame)
+{
+    game.health = game.MaxHealth();
+    game.ClearInput();
+    game.arrows[frame / 180 % 4] = true;
+    game.Update(1.f / 60.f);
+}
+
+WorldScene::InputState WorldScene::InspectInput()
+{
+    return {{{game.arrows[0], game.arrows[1], game.arrows[2], game.arrows[3]}},
+            game.attack,
+            game.sprint,
+            game.jumpRequested};
+}
+
+double WorldScene::SimulationTime()
+{
+    return game.society.simulationSeconds;
 }

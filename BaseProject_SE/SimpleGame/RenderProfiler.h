@@ -27,6 +27,13 @@ namespace RenderProfiler
 
     void BeginCapture(std::vector<Diagnostic>& target);
     void EndCapture();
+
+    struct FrameCounters
+    {
+        std::uint64_t drawCalls = 0, meshBuilds = 0, uploadBytes = 0;
+    };
+
+    FrameCounters CurrentFrame();
     void Initialize();
     void Shutdown();
     std::filesystem::path DataDirectory();

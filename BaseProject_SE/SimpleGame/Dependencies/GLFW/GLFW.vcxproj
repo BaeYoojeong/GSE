@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32"><Configuration>Debug</Configuration><Platform>Win32</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32"><Configuration>Release</Configuration><Platform>Win32</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{E896BD17-0523-4271-B334-A6673073C9DD}</ProjectGuid><RootNamespace>GLFW</RootNamespace><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration"><ConfigurationType>StaticLibrary</ConfigurationType><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.props" />
+  <PropertyGroup><OutDir>$(ProjectDir)build\$(Platform)\$(Configuration)\</OutDir><IntDir>$(ProjectDir)build\$(Platform)\$(Configuration)\obj\</IntDir><TargetName>glfw3</TargetName></PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile><PrecompiledHeader>NotUsing</PrecompiledHeader><CompileAs>CompileAsC</CompileAs><LanguageStandard_C>stdc11</LanguageStandard_C><WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>$(ProjectDir)upstream\include;$(ProjectDir)upstream\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'"><ClCompile><Optimization>Disabled</Optimization><RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary><DebugInformationFormat>ProgramDatabase</DebugInformationFormat><PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile></ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'"><ClCompile><Optimization>MaxSpeed</Optimization><RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary><PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile></ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="upstream\src\context.c" />
+    <ClCompile Include="upstream\src\init.c" />
+    <ClCompile Include="upstream\src\input.c" />
+    <ClCompile Include="upstream\src\monitor.c" />
+    <ClCompile Include="upstream\src\platform.c" />
+    <ClCompile Include="upstream\src\vulkan.c" />
+    <ClCompile Include="upstream\src\window.c" />
+    <ClCompile Include="upstream\src\egl_context.c" />
+    <ClCompile Include="upstream\src\osmesa_context.c" />
+    <ClCompile Include="upstream\src\null_init.c" />
+    <ClCompile Include="upstream\src\null_monitor.c" />
+    <ClCompile Include="upstream\src\null_window.c" />
+    <ClCompile Include="upstream\src\null_joystick.c" />
+    <ClCompile Include="upstream\src\win32_time.c" />
+    <ClCompile Include="upstream\src\win32_thread.c" />
+    <ClCompile Include="upstream\src\win32_module.c" />
+    <ClCompile Include="upstream\src\win32_init.c" />
+    <ClCompile Include="upstream\src\win32_joystick.c" />
+    <ClCompile Include="upstream\src\win32_monitor.c" />
+    <ClCompile Include="upstream\src\win32_window.c" />
+    <ClCompile Include="upstream\src\wgl_context.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="upstream\src\cocoa_joystick.h" />
+    <ClInclude Include="upstream\src\cocoa_platform.h" />
+    <ClInclude Include="upstream\src\internal.h" />
+    <ClInclude Include="upstream\src\linux_joystick.h" />
+    <ClInclude Include="upstream\src\macos_time.h" />
+    <ClInclude Include="upstream\src\mappings.h" />
+    <ClInclude Include="upstream\src\null_joystick.h" />
+    <ClInclude Include="upstream\src\null_platform.h" />
+    <ClInclude Include="upstream\src\platform.h" />
+    <ClInclude Include="upstream\src\posix_poll.h" />
+    <ClInclude Include="upstream\src\posix_thread.h" />
+    <ClInclude Include="upstream\src\posix_time.h" />
+    <ClInclude Include="upstream\src\win32_joystick.h" />
+    <ClInclude Include="upstream\src\win32_platform.h" />
+    <ClInclude Include="upstream\src\win32_thread.h" />
+    <ClInclude Include="upstream\src\win32_time.h" />
+    <ClInclude Include="upstream\src\wl_platform.h" />
+    <ClInclude Include="upstream\src\x11_platform.h" />
+    <ClInclude Include="upstream\include\GLFW\glfw3.h" />
+    <ClInclude Include="upstream\include\GLFW\glfw3native.h" />
+    <None Include="README_KR.md" /><None Include="UPSTREAM.json" /><None Include="upstream\LICENSE.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.targets" />
+</Project>

@@ -1,0 +1,1 @@
+기존 저장소에서 사용하던 GLEW 런타임 DLL의 배포 위치입니다. bin/Win32와 bin/x64의 glew32.dll은 기존 버전과 바이트 단위로 같습니다. 헤더와 import library는 상위 Dependencies와 Dependencies/x64에 유지합니다. 게임 프로젝트의 CopyGlewRuntime이 빌드 후 올바른 아키텍처 DLL을 실행 폴더로 복사합니다. GLFW 자체는 정적으로 빌드합니다. 라이선스 고지는 LICENSE.txt를 참조하세요.

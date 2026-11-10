@@ -162,6 +162,11 @@ std::string RenderProfiler::Environment(const char* name)
     return length && length < sizeof(value) ? value : "";
 }
 
+RenderProfiler::FrameCounters RenderProfiler::CurrentFrame()
+{
+    return {counters.draws, counters.builds, counters.uploads};
+}
+
 void RenderProfiler::Initialize()
 {
     if (initialized)

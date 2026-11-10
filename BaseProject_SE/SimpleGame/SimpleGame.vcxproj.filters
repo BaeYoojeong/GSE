@@ -315,4 +315,15 @@
     <CustomBuild Include="Assets\LOADER_CONTRACT.md" />
     <CustomBuild Include="Tools\export_asset_snapshot.py" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="FrameworkBenchmark.cpp" />
+    <ClInclude Include="FrameworkBenchmark.h" />
+    <ClInclude Include="WindowInput.h" />
+  </ItemGroup>
+  <ItemGroup><None Include="GLFW_MIGRATION_KR.md" /></ItemGroup>
+  <ItemGroup>
+    <None Include="GLFW_VALIDATION.json" />
+    <None Include="Tools\RunFrameworkChecks.ps1" />
+    <None Include="Tools\compare_framework_benchmarks.py" />
+  </ItemGroup>
 </Project>

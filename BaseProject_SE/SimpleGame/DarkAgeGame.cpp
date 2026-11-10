@@ -7,7 +7,7 @@
 
 namespace Ashen
 {
-    bool Game::Initialize()
+    bool Game::Initialize(std::uint64_t initialSeed)
     {
         if (initialized)
         {
@@ -23,7 +23,9 @@ namespace Ashen
         chapter = {};
         pkEnabled = false;
         inputBlocked = false;
-        seed = static_cast<std::uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
+        seed = initialSeed
+                   ? initialSeed
+                   : static_cast<std::uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
         origin = {};
         checkpoint = {};
         life = {};

@@ -21,7 +21,7 @@ namespace Ashen
     class Game
     {
       public:
-        bool Initialize();
+        bool Initialize(std::uint64_t initialSeed = 0);
         bool headless = false;
         std::unique_ptr<FarSimulation> farSimulation;
 

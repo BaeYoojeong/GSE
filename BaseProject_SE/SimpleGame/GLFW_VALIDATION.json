@@ -1,0 +1,932 @@
+{
+  "date": "2026-11-10",
+  "baseline_commit": "2adbb2fd5fd056a068d0464e25e01239111afb24",
+  "glfw_version": "3.5.1",
+  "upstream_archive_sha256": "ea79bc5feffc254c87291980c2d0bce9acebb68c4983b79f961dcd2cb8a611a0",
+  "unmodified_upstream_files": 353,
+  "build_toolset": "MSVC v143; Windows SDK",
+  "builds": {
+    "x64-release": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    "win32-release": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    "x64-debug": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    "win32-debug": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0
+    }
+  },
+  "window_checks": {
+    "x64-release": {
+      "checks": [
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "shift_run_pressed",
+          "passed": true
+        },
+        {
+          "name": "run_released",
+          "passed": true
+        },
+        {
+          "name": "attack_pressed",
+          "passed": true
+        },
+        {
+          "name": "attack_released",
+          "passed": true
+        },
+        {
+          "name": "jump_requested",
+          "passed": true
+        },
+        {
+          "name": "function_key_press",
+          "passed": true
+        },
+        {
+          "name": "repeat_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_release_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_restored",
+          "passed": true
+        },
+        {
+          "name": "focus_callback_clears_all_inputs",
+          "passed": true
+        },
+        {
+          "name": "unfocused_press_ignored",
+          "passed": true
+        },
+        {
+          "name": "os_shortcut_not_game_action",
+          "passed": true
+        },
+        {
+          "name": "journal_blocks_game_controls",
+          "passed": true
+        },
+        {
+          "name": "iconify_callback_clears_input",
+          "passed": true
+        },
+        {
+          "name": "framebuffer_resize_callback",
+          "passed": true
+        },
+        {
+          "name": "resized_render_has_no_gl_error",
+          "passed": true
+        },
+        {
+          "name": "background_loop_advances_world_without_rendering",
+          "passed": true
+        },
+        {
+          "name": "foreground_loop_resumes_rendering",
+          "passed": true
+        },
+        {
+          "name": "zero_framebuffer_recorded_for_render_skip",
+          "passed": true
+        },
+        {
+          "name": "close_request_observed",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "schema": "ashen_glfw_smoke_1"
+    },
+    "win32-release": {
+      "checks": [
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "shift_run_pressed",
+          "passed": true
+        },
+        {
+          "name": "run_released",
+          "passed": true
+        },
+        {
+          "name": "attack_pressed",
+          "passed": true
+        },
+        {
+          "name": "attack_released",
+          "passed": true
+        },
+        {
+          "name": "jump_requested",
+          "passed": true
+        },
+        {
+          "name": "function_key_press",
+          "passed": true
+        },
+        {
+          "name": "repeat_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_release_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_restored",
+          "passed": true
+        },
+        {
+          "name": "focus_callback_clears_all_inputs",
+          "passed": true
+        },
+        {
+          "name": "unfocused_press_ignored",
+          "passed": true
+        },
+        {
+          "name": "os_shortcut_not_game_action",
+          "passed": true
+        },
+        {
+          "name": "journal_blocks_game_controls",
+          "passed": true
+        },
+        {
+          "name": "iconify_callback_clears_input",
+          "passed": true
+        },
+        {
+          "name": "framebuffer_resize_callback",
+          "passed": true
+        },
+        {
+          "name": "resized_render_has_no_gl_error",
+          "passed": true
+        },
+        {
+          "name": "background_loop_advances_world_without_rendering",
+          "passed": true
+        },
+        {
+          "name": "foreground_loop_resumes_rendering",
+          "passed": true
+        },
+        {
+          "name": "zero_framebuffer_recorded_for_render_skip",
+          "passed": true
+        },
+        {
+          "name": "close_request_observed",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "schema": "ashen_glfw_smoke_1"
+    },
+    "x64-debug": {
+      "checks": [
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "shift_run_pressed",
+          "passed": true
+        },
+        {
+          "name": "run_released",
+          "passed": true
+        },
+        {
+          "name": "attack_pressed",
+          "passed": true
+        },
+        {
+          "name": "attack_released",
+          "passed": true
+        },
+        {
+          "name": "jump_requested",
+          "passed": true
+        },
+        {
+          "name": "function_key_press",
+          "passed": true
+        },
+        {
+          "name": "repeat_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_release_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_restored",
+          "passed": true
+        },
+        {
+          "name": "focus_callback_clears_all_inputs",
+          "passed": true
+        },
+        {
+          "name": "unfocused_press_ignored",
+          "passed": true
+        },
+        {
+          "name": "os_shortcut_not_game_action",
+          "passed": true
+        },
+        {
+          "name": "journal_blocks_game_controls",
+          "passed": true
+        },
+        {
+          "name": "iconify_callback_clears_input",
+          "passed": true
+        },
+        {
+          "name": "framebuffer_resize_callback",
+          "passed": true
+        },
+        {
+          "name": "resized_render_has_no_gl_error",
+          "passed": true
+        },
+        {
+          "name": "background_loop_advances_world_without_rendering",
+          "passed": true
+        },
+        {
+          "name": "foreground_loop_resumes_rendering",
+          "passed": true
+        },
+        {
+          "name": "zero_framebuffer_recorded_for_render_skip",
+          "passed": true
+        },
+        {
+          "name": "close_request_observed",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "schema": "ashen_glfw_smoke_1"
+    },
+    "win32-debug": {
+      "checks": [
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "arrow_mapping",
+          "passed": true
+        },
+        {
+          "name": "modified_release_clears_held_key",
+          "passed": true
+        },
+        {
+          "name": "shift_run_pressed",
+          "passed": true
+        },
+        {
+          "name": "run_released",
+          "passed": true
+        },
+        {
+          "name": "attack_pressed",
+          "passed": true
+        },
+        {
+          "name": "attack_released",
+          "passed": true
+        },
+        {
+          "name": "jump_requested",
+          "passed": true
+        },
+        {
+          "name": "function_key_press",
+          "passed": true
+        },
+        {
+          "name": "repeat_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_release_does_not_retoggle",
+          "passed": true
+        },
+        {
+          "name": "function_key_restored",
+          "passed": true
+        },
+        {
+          "name": "focus_callback_clears_all_inputs",
+          "passed": true
+        },
+        {
+          "name": "unfocused_press_ignored",
+          "passed": true
+        },
+        {
+          "name": "os_shortcut_not_game_action",
+          "passed": true
+        },
+        {
+          "name": "journal_blocks_game_controls",
+          "passed": true
+        },
+        {
+          "name": "iconify_callback_clears_input",
+          "passed": true
+        },
+        {
+          "name": "framebuffer_resize_callback",
+          "passed": true
+        },
+        {
+          "name": "resized_render_has_no_gl_error",
+          "passed": true
+        },
+        {
+          "name": "background_loop_advances_world_without_rendering",
+          "passed": true
+        },
+        {
+          "name": "foreground_loop_resumes_rendering",
+          "passed": true
+        },
+        {
+          "name": "zero_framebuffer_recorded_for_render_skip",
+          "passed": true
+        },
+        {
+          "name": "close_request_observed",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "schema": "ashen_glfw_smoke_1"
+    }
+  },
+  "performance": {
+    "method": "median of independent run medians; identical seed and framebuffer; swapped execution order",
+    "regression_limit_percent": 5,
+    "controls": {
+      "world_seed": 20261110,
+      "warmup_frames": 120,
+      "measured_frames": 600,
+      "vsync": 0,
+      "gpu_vendor": "NVIDIA Corporation",
+      "gpu_renderer": "NVIDIA GeForce RTX 5060/PCIe/SSE2",
+      "opengl_version": "4.6.0 NVIDIA 610.88",
+      "image_width": 1120,
+      "image_height": 784,
+      "framebuffer": {
+        "alpha_bits": 0,
+        "blue_bits": 8,
+        "depth_bits": 24,
+        "green_bits": 8,
+        "red_bits": 8,
+        "samples": 0,
+        "stencil_bits": 8
+      }
+    },
+    "scenes": {
+      "frozen_scene": {
+        "runs": {
+          "FreeGLUT": [
+            {
+              "run": "frozen-0-baseline",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 0.8750991666666668,
+                "median": 0.7712,
+                "p95": 1.45,
+                "p99": 2.1261
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.15604016000000004,
+                "median": 0.116192,
+                "p95": 0.380992,
+                "p99": 0.558976
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 106.0,
+                "median": 106.0,
+                "p95": 106.0,
+                "p99": 106.0
+              },
+              "image_hash_fnv1a64": "4056027178796356197"
+            },
+            {
+              "run": "frozen-3-baseline",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 0.8226323333333337,
+                "median": 0.7771,
+                "p95": 1.1136,
+                "p99": 1.2686
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.15184826666666668,
+                "median": 0.116288,
+                "p95": 0.371744,
+                "p99": 0.435744
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 106.0,
+                "median": 106.0,
+                "p95": 106.0,
+                "p99": 106.0
+              },
+              "image_hash_fnv1a64": "4056027178796356197"
+            }
+          ],
+          "GLFW": [
+            {
+              "run": "frozen-1-candidate",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 0.7517781666666662,
+                "median": 0.7293,
+                "p95": 0.9029,
+                "p99": 1.0401
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.14435445333333333,
+                "median": 0.115072,
+                "p95": 0.335168,
+                "p99": 0.385024
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 106.0,
+                "median": 106.0,
+                "p95": 106.0,
+                "p99": 106.0
+              },
+              "image_hash_fnv1a64": "4056027178796356197"
+            },
+            {
+              "run": "frozen-2-candidate",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 0.7764181666666663,
+                "median": 0.749,
+                "p95": 0.9351,
+                "p99": 1.0937
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.14829536000000001,
+                "median": 0.115616,
+                "p95": 0.35072,
+                "p99": 0.412672
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 106.0,
+                "median": 106.0,
+                "p95": 106.0,
+                "p99": 106.0
+              },
+              "image_hash_fnv1a64": "4056027178796356197"
+            }
+          ]
+        },
+        "metrics": {
+          "cpu_frame_ms": {
+            "FreeGLUT_median_ms": 0.77415,
+            "GLFW_median_ms": 0.73915,
+            "change_percent": -4.521087644513344,
+            "FreeGLUT_p95_ms": 1.2818,
+            "GLFW_p95_ms": 0.919
+          },
+          "gpu_ms": {
+            "FreeGLUT_median_ms": 0.11624000000000001,
+            "GLFW_median_ms": 0.115344,
+            "change_percent": -0.7708189951823874,
+            "FreeGLUT_p95_ms": 0.37636800000000004,
+            "GLFW_p95_ms": 0.342944
+          }
+        },
+        "identical_rendered_pixels": true,
+        "identical_per_frame_draw_build_upload_counters": true,
+        "no_material_regression": true
+      },
+      "scripted_simulation": {
+        "runs": {
+          "FreeGLUT": [
+            {
+              "run": "moving-0-baseline",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1869668333333334,
+                "median": 1.0298,
+                "p95": 1.8271,
+                "p99": 4.4017
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.2040215466666666,
+                "median": 0.14496,
+                "p95": 0.447072,
+                "p99": 0.627008
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            },
+            {
+              "run": "moving-3-baseline",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.131612666666667,
+                "median": 0.9752,
+                "p95": 1.7852,
+                "p99": 4.0058
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.19646885333333328,
+                "median": 0.144032,
+                "p95": 0.421632,
+                "p99": 0.497056
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            },
+            {
+              "run": "moving-5-baseline",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1042200000000002,
+                "median": 0.9594,
+                "p95": 1.7195,
+                "p99": 3.4884
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.19351120000000013,
+                "median": 0.143616,
+                "p95": 0.41808,
+                "p99": 0.530016
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            },
+            {
+              "run": "moving-6-baseline",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1218633333333325,
+                "median": 0.9873,
+                "p95": 1.8085,
+                "p99": 3.8719
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.19482885333333338,
+                "median": 0.144256,
+                "p95": 0.41696,
+                "p99": 0.510208
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            }
+          ],
+          "GLFW": [
+            {
+              "run": "moving-1-candidate",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1031010000000012,
+                "median": 0.9423,
+                "p95": 1.7129,
+                "p99": 3.5882
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.1890821333333333,
+                "median": 0.142688,
+                "p95": 0.394496,
+                "p99": 0.479904
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            },
+            {
+              "run": "moving-2-candidate",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1305986666666674,
+                "median": 0.9861,
+                "p95": 1.7571,
+                "p99": 3.7876
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.19347845333333324,
+                "median": 0.145344,
+                "p95": 0.401888,
+                "p99": 0.465824
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            },
+            {
+              "run": "moving-4-candidate",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1111313333333328,
+                "median": 0.9724,
+                "p95": 1.7271,
+                "p99": 3.7801
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.19498437333333327,
+                "median": 0.142976,
+                "p95": 0.405472,
+                "p99": 0.51824
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            },
+            {
+              "run": "moving-7-candidate",
+              "cpu_frame_ms": {
+                "count": 600,
+                "mean": 1.1360848333333329,
+                "median": 1.0,
+                "p95": 1.802,
+                "p99": 3.6177
+              },
+              "gpu_ms": {
+                "count": 600,
+                "mean": 0.1970711999999999,
+                "median": 0.144032,
+                "p95": 0.420256,
+                "p99": 0.51792
+              },
+              "draw_calls": {
+                "count": 600,
+                "mean": 107.385,
+                "median": 107.0,
+                "p95": 114.0,
+                "p99": 116.0
+              },
+              "image_hash_fnv1a64": "3769188009404312539"
+            }
+          ]
+        },
+        "metrics": {
+          "cpu_frame_ms": {
+            "FreeGLUT_median_ms": 0.98125,
+            "GLFW_median_ms": 0.97925,
+            "change_percent": -0.20382165605095093,
+            "FreeGLUT_p95_ms": 1.79685,
+            "GLFW_p95_ms": 1.7421000000000002
+          },
+          "gpu_ms": {
+            "FreeGLUT_median_ms": 0.144144,
+            "GLFW_median_ms": 0.143504,
+            "change_percent": -0.44400044400044747,
+            "FreeGLUT_p95_ms": 0.419856,
+            "GLFW_p95_ms": 0.40368000000000004
+          }
+        },
+        "identical_rendered_pixels": true,
+        "identical_per_frame_draw_build_upload_counters": true,
+        "no_material_regression": true
+      }
+    },
+    "passed": true,
+    "scope": "This PC, hidden windows, these two controlled workloads; not a guarantee for every driver or scene."
+  },
+  "freeglut_runtime_dependency": false,
+  "glfw_runtime_dll_required": false,
+  "normal_profile_used": false,
+  "portable_clean_build": {
+    "passed": true,
+    "project_only": true,
+    "generated_libraries_copied": false,
+    "runtime_dll_copied_automatically": true,
+    "path_contains_spaces": true,
+    "warnings": 0,
+    "errors": 0,
+    "window_checks": 28
+  },
+  "active_repository_builds": {
+    "x64-release": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "window_checks": 28
+    },
+    "x64-debug": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "window_checks": 28
+    },
+    "win32-release": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "window_checks": 28
+    },
+    "win32-debug": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "window_checks": 28
+    }
+  },
+  "active_repository_render_check": {
+    "passed": true,
+    "image_hash_fnv1a64": "4056027178796356197",
+    "draw_calls": 106,
+    "gl_errors": 0,
+    "image_matches_baseline": true
+  }
+}

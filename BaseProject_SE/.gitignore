@@ -15,3 +15,9 @@
 
 # Generated solution-level build output (tracked runtime DLLs remain tracked).
 /x64/
+
+# Generated Win32 deployment and standalone project outputs.
+/Debug/
+/Release/
+/SimpleGame/Debug/
+/SimpleGame/Release/
