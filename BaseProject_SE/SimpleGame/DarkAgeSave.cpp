@@ -166,7 +166,8 @@ bool Ashen::Game::Load()
 
     if (!(in >> magic >> candidateSeed >> candidateHealth >> candidateSupplies) ||
         (magic != "ASHEN_WORLD_V1" && magic != "ASHEN_WORLD_V2" && magic != "ASHEN_WORLD_V3" &&
-         magic != "ASHEN_WORLD_V4" && magic != "ASHEN_WORLD_V5" && magic != "ASHEN_WORLD_V6") ||
+         magic != "ASHEN_WORLD_V4" && magic != "ASHEN_WORLD_V5" &&
+         (magic != "ASHEN_WORLD_V6" && (magic != "ASHEN_WORLD_V7" && magic != "ASHEN_WORLD_V8"))) ||
         !std::isfinite(candidateHealth) || candidateHealth < 0 ||
         candidateHealth > 120 + (MaxLevel - 1) * 12 || candidateSupplies < 0 || candidateSupplies > 99 ||
         !ReadLife(in, candidateLife) || !ReadLocation(in, current) || !ReadLocation(in, camp))
@@ -225,7 +226,8 @@ bool Ashen::Game::Load()
             }
         }
 
-        if (magic == "ASHEN_WORLD_V4" || magic == "ASHEN_WORLD_V5" || magic == "ASHEN_WORLD_V6")
+        if (magic == "ASHEN_WORLD_V4" || magic == "ASHEN_WORLD_V5" ||
+            (magic == "ASHEN_WORLD_V6" || (magic == "ASHEN_WORLD_V7" || magic == "ASHEN_WORLD_V8")))
         {
             if (!(in >> region.enemyRespawn[0] >> region.enemyRespawn[1]))
             {
@@ -235,7 +237,8 @@ bool Ashen::Game::Load()
         for (int slot = 0; slot < 2; ++slot)
         {
             const bool defeated = (region.defeated & (1u << slot)) != 0;
-            if (magic != "ASHEN_WORLD_V4" && magic != "ASHEN_WORLD_V5" && magic != "ASHEN_WORLD_V6")
+            if (magic != "ASHEN_WORLD_V4" && magic != "ASHEN_WORLD_V5" &&
+                (magic != "ASHEN_WORLD_V6" && (magic != "ASHEN_WORLD_V7" && magic != "ASHEN_WORLD_V8")))
             {
                 region.enemyRespawn[slot] = defeated ? EnemyRespawnSeconds : 0;
             }
@@ -332,7 +335,7 @@ bool Ashen::Game::Load()
 
     WorldSociety loadedSociety;
     if (magic == "ASHEN_WORLD_V3" || magic == "ASHEN_WORLD_V4" || magic == "ASHEN_WORLD_V5" ||
-        magic == "ASHEN_WORLD_V6")
+        (magic == "ASHEN_WORLD_V6" || (magic == "ASHEN_WORLD_V7" || magic == "ASHEN_WORLD_V8")))
     {
         if (!loadedSociety.Read(in, candidateLife.id) ||
             loadedSociety.citizens.size() !=
@@ -352,7 +355,9 @@ bool Ashen::Game::Load()
     }
 
     ChapterTwo candidateChapter;
-    if ((magic == "ASHEN_WORLD_V5" || magic == "ASHEN_WORLD_V6") && !candidateChapter.Read(in))
+    if ((magic == "ASHEN_WORLD_V5" ||
+         (magic == "ASHEN_WORLD_V6" || (magic == "ASHEN_WORLD_V7" || magic == "ASHEN_WORLD_V8"))) &&
+        !candidateChapter.Read(in))
     {
         return reject();
     }
@@ -382,6 +387,16 @@ bool Ashen::Game::Load()
             return reject();
         }
     }
+    Inventory candidateInventory;
+    if ((magic == "ASHEN_WORLD_V7" || magic == "ASHEN_WORLD_V8") && !candidateInventory.Read(in))
+    {
+        return reject();
+    }
+    Waypoints candidateWaypoints;
+    if (magic == "ASHEN_WORLD_V8" && !candidateWaypoints.Read(in))
+    {
+        return reject();
+    }
     std::string end;
 
     if (!(in >> end) || end != "END")
@@ -398,7 +413,7 @@ bool Ashen::Game::Load()
 
     if (!fromDatabase)
     {
-        const std::wstring backup = savePath + L".pre-world-v6.bak";
+        const std::wstring backup = savePath + L".pre-world-v7.bak";
         if (!CopyFileW(savePath.c_str(), backup.c_str(), TRUE) && GetLastError() != ERROR_FILE_EXISTS)
         {
             return reject();
@@ -446,6 +461,21 @@ bool Ashen::Game::Load()
         RenderProfiler::Event("world_layout_migrated", "town_center_spacing=5 legacy_spacing=8");
     }
 
+    // Take a consistent SQLite backup once before committing the new inventory-bearing core format.
+    if (fromDatabase && (magic != "ASHEN_WORLD_V7" && magic != "ASHEN_WORLD_V8") &&
+        !regionDatabase.Backup(savePath + L".pre-inventory-v7.sqlite3"))
+    {
+        RenderProfiler::Event("inventory_migration_backup_failed", regionDatabase.Error());
+        return reject();
+    }
+    if (fromDatabase && magic != "ASHEN_WORLD_V8" &&
+        !regionDatabase.Backup(savePath + L".pre-waypoints-v8.sqlite3"))
+    {
+        RenderProfiler::Event("waypoint_migration_backup_failed", regionDatabase.Error());
+        return reject();
+    }
+    waypoints = candidateWaypoints;
+    inventory = candidateInventory;
     society = std::move(loadedSociety);
     chapter = candidateChapter;
     // Commit only a completely validated snapshot. Invalid files are never silently overwritten.
@@ -474,7 +504,7 @@ bool Ashen::Game::Save()
     }
 
     std::ostringstream out;
-    out << std::setprecision(9) << "ASHEN_WORLD_V6 " << seed << ' ' << health << ' ' << supplies << '\n';
+    out << std::setprecision(9) << "ASHEN_WORLD_V8 " << seed << ' ' << health << ' ' << supplies << '\n';
     WriteLife(out, life);
     WriteLocation(out, Absolute(hero->position));
     WriteLocation(out, checkpoint);
@@ -522,6 +552,8 @@ bool Ashen::Game::Save()
         << growth.magnetSeconds << ' ' << growth.lessons << ' ' << growth.itemsSeen << '\n';
     society.Write(out);
     chapter.Write(out);
+    inventory.Write(out);
+    waypoints.Write(out);
     out << "END\n";
     const std::string data = out.str();
 

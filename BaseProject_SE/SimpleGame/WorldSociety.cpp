@@ -179,6 +179,8 @@ namespace Ashen
         npc.goalDwellSeconds = 8;
         npc.travelCommitSeconds = 0;
         npc.marketDuty = false;
+        npc.marketCooldown = 12 + static_cast<float>(npc.id % 15);
+        npc.marketVisitSeconds = 0;
         npc.activity = npc.intention = Activity::Rest;
         npc.hostileSeconds = npc.attackTimer = npc.actionTimer = 0;
         npc.attackVisualSeconds = npc.hitVisualSeconds = 0;
@@ -343,6 +345,7 @@ namespace Ashen
         npc.travelCommitSeconds = (std::max)(0.0f, npc.travelCommitSeconds - dt);
         npc.reviveProtection = (std::max)(0.0f, npc.reviveProtection - dt);
         npc.decisionTimer = (std::max)(0.0f, npc.decisionTimer - dt);
+        npc.marketCooldown = (std::max)(0.0f, npc.marketCooldown - dt);
         if (npc.activity == npc.intention)
         {
             npc.intentionAge = (std::min)(60.0f, npc.intentionAge + dt);
@@ -409,6 +412,13 @@ namespace Ashen
         {
             return;
         }
+        const auto* trading = dynamic_cast<const WorldActor*>(game.scene.Find(game.tradingMerchant));
+        if (trading && trading->kind == Kind::Citizen && trading->memory == npc.id &&
+            game.Shopkeeper(game.tradingMerchant) == npc.id)
+        {
+            npc.activity = Activity::Trade;
+            return;
+        }
         const bool duty = IsMarketKeeper(npc);
         if (duty != npc.marketDuty)
         {
@@ -416,6 +426,19 @@ namespace Ashen
             npc.travelCommitSeconds = 0;
             npc.goalActivity = Activity::Dead;
             npc.decisionTimer = 0;
+        }
+        if (!duty && npc.intention == Activity::Trade)
+        {
+            npc.marketTripSeconds += dt;
+            npc.marketVisitSeconds = IsAtMarket(npc) ? npc.marketVisitSeconds + dt : 0;
+            if (npc.marketVisitSeconds >= 8 + static_cast<float>(npc.id % 4) || npc.marketTripSeconds >= 45)
+            {
+                FinishMarketVisit(npc, "timeout");
+            }
+        }
+        else
+        {
+            npc.marketVisitSeconds = npc.marketTripSeconds = 0;
         }
         if (Near(npc.position, npc.activityGoal, 18))
         {
@@ -631,8 +654,12 @@ namespace Ashen
             if (partner)
             {
                 const bool merchant = npc.profession == Profession::Merchant;
-                Exchange(buying ? *partner : npc, buying ? npc : *partner,
-                         buying ? (merchant ? 2 : 3) : (merchant ? 3 : 2));
+                if (Exchange(buying ? *partner : npc, buying ? npc : *partner,
+                             buying ? (merchant ? 2 : 3) : (merchant ? 3 : 2)))
+                {
+                    FinishMarketVisit(npc, "traded");
+                    FinishMarketVisit(*partner, "traded");
+                }
             }
             npc.decisionTimer = 0;
             return;
@@ -880,39 +907,14 @@ namespace Ashen
 
     bool WorldSociety::Trade(Game& game, std::uint64_t id, bool buy)
     {
-        auto it = citizens.find(id);
-        if (it == citizens.end())
+        const auto* merchant = Find(id);
+        if (!merchant || merchant->profession != Profession::Merchant || merchant->health <= 0 ||
+            !IsAtMarket(*merchant) || IsHostile(id))
         {
+            game.Notify(L"시장에서 살아 있는 비적대 상인과 거래할 수 있습니다.");
             return false;
         }
-        auto& merchant = it->second;
-        if (merchant.health <= 0 || merchant.profession != Profession::Merchant || !IsAtMarket(merchant) ||
-            IsHostile(id))
-        {
-            game.Notify(L"노점이나 길가 시장의 살아 있는 비적대 상인과 거래할 수 있습니다.");
-            return false;
-        }
-        const int price = buy ? 3 : 2;
-        int& buyerCoins = buy ? playerCoins : merchant.coins;
-        int& sellerCoins = buy ? merchant.coins : playerCoins;
-        int& buyerGoods = buy ? game.supplies : merchant.goods;
-        int& sellerGoods = buy ? merchant.goods : game.supplies;
-        if (buyerCoins < price || sellerGoods < 1 || buyerGoods >= 99 || sellerCoins > CoinLimit - price)
-        {
-            game.Notify(L"거래 불가 · 동전, 물자 재고 또는 소지 한도를 확인하세요.");
-            return false;
-        }
-        buyerCoins -= price;
-        sellerCoins += price;
-        --sellerGoods;
-        ++buyerGoods;
-        ++trades;
-        const ChunkKey market = Locate(merchant.village, merchant.position).chunk;
-        Log(buy ? "player_buy" : "player_sell", 0, id, price,
-            buy ? L"상인에게 물자 구매" : L"상인에게 물자 판매", &market);
-        game.Notify(buy ? L"물자 +1 / 동전 -3" : L"물자 -1 / 동전 +2");
-        game.dirty = true;
-        return true;
+        return buy ? PurchaseItem(game, id, ItemId::Supplies) : SellSupplies(game, id);
     }
 
     bool WorldSociety::Give(Game& game, std::uint64_t id)
@@ -962,7 +964,7 @@ namespace Ashen
                std::to_wstring(npc->village.x) + L"," + std::to_wstring(npc->village.y) + L") / 현재 (" +
                std::to_wstring(current.chunk.x) + L"," + std::to_wstring(current.chunk.y) + L")" + L"\n집 " +
                std::to_wstring(npc->houseLot + 1) + L"호 · " + JourneyName(npc->journeyKind) +
-               L" · B 구매 / N 판매" + L"\n목표 점수 휴/사/약/거/수 " +
+               L" · 시장에서 E로 상인과 거래" + L"\n목표 점수 휴/사/약/거/수 " +
                std::to_wstring(static_cast<int>(npc->decisionScores[0])) + L"/" +
                std::to_wstring(static_cast<int>(npc->decisionScores[1])) + L"/" +
                std::to_wstring(static_cast<int>(npc->decisionScores[2])) + L"/" +

@@ -12,13 +12,17 @@ namespace WorldScene
     void Resize(int width, int height);
     void Arrow(SpecialKey key, bool down);
     void Key(unsigned char key, bool down);
+    void Pointer(float x, float y);
+    void PointerButton(float x, float y, bool down, bool valid = true);
+    void PointerMove(float x, float y);
+    void Scroll(float x, float y, double steps);
     void ClearInput();
     void BenchmarkStep(unsigned frame);
 
     struct InputState
     {
         std::array<bool, 4> arrows;
-        bool attack, sprint, jump;
+        bool attack, sprint, itemPanel;
     };
 
     InputState InspectInput();

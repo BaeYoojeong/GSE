@@ -13,7 +13,7 @@ namespace RenderBatch
     };
 
     bool Initialize(GLuint worldProgram);
-    void Submit(const MeshCache::Handle& mesh, Instance instance, GLuint texture = 0);
+    void Submit(const MeshCache::Handle& mesh, Instance instance, GLuint texture = 0, int textureMode = 1);
     // Flush before changing framebuffer, shader-wide uniforms, pass, or deleting a queued texture.
     void Flush(const char* reason);
     void Shutdown();

@@ -16,14 +16,15 @@ vec3 srgbToLinear(vec3 c)
 
 void main()
 {
-    float a = color.a;
-    if (useTexture != 0)
-    {
-        a *= texture(image, texUV).r;
-    }
-    vec3 base = srgbToLinear(color.rgb);
+    vec4 surface = color;
+    if (useTexture == 1)
+        surface.a *= texture(image, texUV).r; // Font coverage mask.
+    else if (useTexture == 2)
+        surface *= texture(image, texUV);    // RGBA map/UI image.
+    float a = surface.a;
+    vec3 base = srgbToLinear(surface.rgb);
     vec3 energy = base * max(lightEnergy - 1.0, 0.0);
-    vec3 rgb = linearOutput != 0 ? base + energy : color.rgb;
+    vec3 rgb = linearOutput != 0 ? base + energy : surface.rgb;
     result = vec4(rgb * fade, a);
     // Zero-emission opaque objects also occlude lights behind them in this attachment.
     emissive = vec4(linearOutput != 0 ? energy * fade : vec3(0.0), a);

@@ -36,11 +36,12 @@ void main()
             c = mix(c,texture(softImage,uv).rgb,clamp(edge*edgeStrength,0.0,1.0));
         if(bloomStrength>0.0)
         {
+            // Favor a tight halo over the broad levels that wash out dark silhouettes.
             // Constant sampler indices are compatible with GLSL 3.30.
-            vec3 bloom = texture(bloomImages[0],uv).rgb * 0.45;
-            bloom += texture(bloomImages[1],uv).rgb * 0.28;
-            bloom += texture(bloomImages[2],uv).rgb * 0.18;
-            bloom += texture(bloomImages[3],uv).rgb * 0.09;
+            vec3 bloom = texture(bloomImages[0],uv).rgb * 0.68;
+            bloom += texture(bloomImages[1],uv).rgb * 0.23;
+            bloom += texture(bloomImages[2],uv).rgb * 0.07;
+            bloom += texture(bloomImages[3],uv).rgb * 0.02;
             c += bloom * bloomStrength;
         }
     }

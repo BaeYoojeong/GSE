@@ -7,19 +7,19 @@ namespace PostProcessing
         bool enabled = true;
         bool bloom = true;
         bool vignette = true;
-        bool edgeBlur = true;
-        float exposure = 1.12f;
-        float bloomStrength = 0.80f;
-        float bloomThreshold = 0.45f; // Applied only to linear HDR emission, before downsampling.
-        float bloomKnee = 0.30f;
-        float bloomRadius = 1.25f; // Blur step in each pyramid level's pixels.
-        float vignetteStrength = 0.30f;
-        float vignetteStart = 0.35f;
+        bool edgeBlur = false; // Keep pixel silhouettes crisp by default; F4 enables a subtle corner blur.
+        float exposure = 1.00f;
+        float bloomStrength = 0.32f;
+        float bloomThreshold = 0.90f; // Applied only to linear HDR emission, before downsampling.
+        float bloomKnee = 0.20f;
+        float bloomRadius = 0.85f; // Blur step in each pyramid level's pixels.
+        float vignetteStrength = 0.22f;
+        float vignetteStart = 0.70f;
         float vignetteEnd = 1.38f;
-        float edgeBlurStrength = 0.65f;
-        float edgeStart = 0.65f;
-        float edgeEnd = 1.18f;
-        float edgeBlurRadius = 1.6f; // In half-resolution pixels.
+        float edgeBlurStrength = 0.20f;
+        float edgeStart = 0.98f;
+        float edgeEnd = 1.42f;
+        float edgeBlurRadius = 0.75f; // In half-resolution pixels.
     };
 
     Settings& Options();

@@ -171,7 +171,7 @@ namespace Ashen
         {
             auto& other = pair.second;
             if (other.id == npc.id || other.health <= 0 || other.hostileSeconds > 0 ||
-                other.activity == Activity::Raid)
+                other.activity == Activity::Raid || (!other.marketDuty && other.marketCooldown > 0))
             {
                 continue;
             }
@@ -271,7 +271,7 @@ namespace Ashen
             score[2] = Unavailable;
         }
         const bool marketKeeper = IsMarketKeeper(npc);
-        if (!canTrade && !marketKeeper)
+        if (!marketKeeper && (!canTrade || npc.marketCooldown > 0 || !HasMarketVacancy(npc)))
         {
             score[3] = Unavailable;
         }
@@ -321,8 +321,7 @@ namespace Ashen
         }
         // A trip is work in progress. Re-evaluate emergencies, but finish a valid destination
         // before ordinary score changes send the resident back toward town.
-        const bool destinationValid =
-            previous == static_cast<unsigned>(Activity::Trade) || score[previous] > Unavailable;
+        const bool destinationValid = previous < score.size() && score[previous] > Unavailable;
         if (npc.travelCommitSeconds > 0 && npc.goalActivity == npc.intention && destinationValid &&
             DistanceSquared(npc.position, npc.activityGoal) > 18 * 18 && injury < .45f &&
             npc.reviveProtection <= 0)

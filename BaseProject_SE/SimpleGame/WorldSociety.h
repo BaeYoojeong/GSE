@@ -2,6 +2,7 @@
 
 #include "WorldTypes.h"
 #include "TownWorld.h"
+#include "ItemCatalog.h"
 #include <array>
 #include <cstddef>
 #include <deque>
@@ -14,6 +15,7 @@ namespace Ashen
 {
     class Game;
     class WorldActor;
+    class AcceptanceChecks;
 
     enum class Profession
     {
@@ -124,6 +126,9 @@ namespace Ashen
         float raidResultSeconds = 0;
         float goalDwellSeconds = 0;
         bool marketDuty = false;
+        float marketCooldown = 0;
+        float marketVisitSeconds = 0;
+        float marketTripSeconds = 0;
         Vec2 motionVelocity = {};
         Vec2 motionOrigin = {};
     };
@@ -205,6 +210,10 @@ namespace Ashen
         bool DamageCitizen(Game& game, std::uint64_t id, float damage);
         bool DamageQuarry(Game& game, ChunkKey village, int slot, float damage);
         bool Trade(Game& game, std::uint64_t id, bool buy);
+        bool PurchaseItem(Game& game, std::uint64_t id, ItemId item);
+        bool SellSupplies(Game& game, std::uint64_t id);
+        static constexpr unsigned MarketVisitorLimit = 3;
+        unsigned MarketVisitors(ChunkKey village, unsigned site, std::uint64_t exclude = 0) const;
         bool Give(Game& game, std::uint64_t id);
         bool IsHostile(std::uint64_t id) const;
         const CitizenRecord* Find(std::uint64_t id) const;
@@ -241,6 +250,7 @@ namespace Ashen
       private:
         friend class FarSimulation;
         friend class WorldMonitor;
+        friend class AcceptanceChecks;
         bool backgroundSimulation = false;
         std::vector<SocietyEvent> backgroundEvents;
         bool expandedWorld = false;
@@ -272,6 +282,9 @@ namespace Ashen
         void Think(Game& game, CitizenRecord& npc, float dt);
         void EnsureGrounds(ChunkKey village);
         void SelectActivity(CitizenRecord& npc, bool playerCanBeRobbed);
+        bool HasMarketVacancy(const CitizenRecord& npc) const;
+        Vec2 MarketDestination(const CitizenRecord& npc) const;
+        void FinishMarketVisit(CitizenRecord& npc, const char* reason);
         HuntingGround* FindQuarry(CitizenRecord& npc, bool reserve = true);
         CitizenRecord* FindRaidTarget(const CitizenRecord& npc);
         CitizenRecord* FindTradePartner(const CitizenRecord& npc, bool& buying, bool requireMarket = true);

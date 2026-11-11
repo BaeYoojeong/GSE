@@ -8,6 +8,8 @@
 #include "RegionDatabase.h"
 #include "PlanetWorld.h"
 #include "FarSimulation.h"
+#include "Inventory.h"
+#include "Waypoints.h"
 #include <memory>
 #include <map>
 #include <set>
@@ -50,6 +52,25 @@ namespace Ashen
         bool Save();
         bool CombatTarget(const WorldActor& actor) const;
         void Trade(bool buy);
+        std::uint64_t Shopkeeper(ActorId shop) const;
+        bool BuyItem(ActorId shop, ItemId item);
+        bool SellSupplies(ActorId shop);
+        bool UseItem(ItemId item);
+        float DamageForWeapon(ItemId item) const;
+        Inventory inventory;
+        ActorId requestedShop = 0;
+        ActorId tradingMerchant = 0;
+        int requestedMap = -1;
+        Waypoints waypoints;
+        bool ActivateWaypoint(unsigned town);
+        bool TravelToWaypoint(unsigned town);
+
+        Location PlayerLocation() const
+        {
+            return hero ? Absolute(hero->position) : Location{};
+        }
+
+        float healingCooldown = 0;
         void TogglePK();
         WorldSociety society;
         ChapterTwo chapter;
@@ -118,7 +139,7 @@ namespace Ashen
 
         bool arrows[4] = {};
         bool attack = false;
-        bool sprint = false, jumpRequested = false;
+        bool sprint = false;
         float health = 100;
         float elapsed = 0;
         int supplies = 3;
@@ -139,6 +160,7 @@ namespace Ashen
         friend class BellKeeperActor;
         friend class WorldMonitor;
         friend class CitizenActor;
+        friend class MarketStallActor;
         friend class HerbActor;
         friend class FireActor;
         friend class SettlerActor;

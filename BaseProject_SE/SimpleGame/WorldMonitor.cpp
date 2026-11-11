@@ -858,6 +858,10 @@ namespace Ashen
             json.String("destination_kind", hasDestination ? destinationKind : std::string("unassigned"));
             json.Number("journey", npc.journey);
             json.Number("goal_dwell_seconds", npc.goalDwellSeconds);
+            json.Number("market_cooldown_seconds", npc.marketCooldown);
+            json.Number("market_visit_seconds", npc.marketVisitSeconds);
+            json.Number("market_trip_seconds", npc.marketTripSeconds);
+            json.Boolean("market_keeper", npc.marketDuty);
             json.Number("health", npc.health);
             json.Number("max_health", npc.maximumHealth);
             json.Number("coins", npc.coins);

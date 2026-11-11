@@ -140,6 +140,64 @@ namespace Ashen
         return true;
     }
 
+    bool RegionDatabase::Backup(const std::wstring& path)
+    {
+        const DWORD attributes = GetFileAttributesW(path.c_str());
+        if (attributes != INVALID_FILE_ATTRIBUTES)
+        {
+            if (attributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                error = "backup_target_is_directory";
+                return false;
+            }
+            return true;
+        }
+        if (!handle)
+        {
+            error = "backup_source_not_open";
+            return false;
+        }
+        const auto temporary = path + L"." + std::to_wstring(GetCurrentProcessId()) + L"." +
+                               std::to_wstring(GetTickCount64()) + L".tmp";
+        HANDLE file = CreateFileW(temporary.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+                                  FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (file == INVALID_HANDLE_VALUE)
+        {
+            error = "backup_temporary_create_failed";
+            return false;
+        }
+        CloseHandle(file);
+        sqlite3* destination = nullptr;
+        bool success = sqlite3_open16(temporary.c_str(), &destination) == SQLITE_OK;
+        if (success)
+        {
+            sqlite3_backup* copy = sqlite3_backup_init(destination, "main", handle, "main");
+            success = copy != nullptr;
+            if (copy)
+            {
+                const int step = sqlite3_backup_step(copy, -1);
+                const int finish = sqlite3_backup_finish(copy);
+                success = step == SQLITE_DONE && finish == SQLITE_OK;
+            }
+        }
+        if (destination)
+        {
+            success = sqlite3_close_v2(destination) == SQLITE_OK && success;
+        }
+        if (success)
+        {
+            success = MoveFileExW(temporary.c_str(), path.c_str(), MOVEFILE_WRITE_THROUGH) != 0;
+        }
+        if (!success)
+        {
+            DeleteFileW(temporary.c_str());
+            error = "inventory_migration_backup_failed";
+            return false;
+        }
+        RenderProfiler::Event("inventory_migration_backup", "world_core_and_regions_saved_before_v7");
+        return true;
+    }
+
     bool RegionDatabase::ReadCore(std::string& text, bool& found)
     {
         found = false;

@@ -99,6 +99,41 @@ namespace Ashen
                 require(!DiskMeshCache::Load(cacheKey, actual) && actual.empty(), "corrupt_mesh_rejected");
                 DiskMeshCache::Shutdown();
             }
+            const auto savedGrowth = game.growth;
+            const float startingDamage = game.ShotDamage();
+            const float startingCooldown = game.ShotCooldown();
+            bool combatBudget = true;
+            for (int level = 1; level <= Game::MaxLevel; ++level)
+            {
+                for (int weapon = 0; weapon <= Game::MaxWeapon; ++weapon)
+                {
+                    game.growth.level = level;
+                    game.growth.weapon = weapon;
+                    const float damage = game.ShotDamage();
+                    const float cooldown = game.ShotCooldown();
+                    combatBudget &= std::isfinite(damage) && damage > 0 &&
+                                    damage * 2 < Game::EnemyMaximumHealth &&
+                                    damage * 2 < HuntingGround::MaximumHealth && std::isfinite(cooldown) &&
+                                    cooldown >= .36f;
+                }
+            }
+            require(combatBudget, "all_progression_states_need_multiple_hits_and_have_bounded_fire_rate");
+            require(game.ShotDamage() > startingDamage && game.ShotCooldown() < startingCooldown,
+                    "level_and_weapon_growth_still_improve_attacks");
+            ChapterTwo legacyBoss;
+            std::istringstream oldBoss("CHAPTER_TWO_V1 7 20000");
+            require(legacyBoss.Read(oldBoss) && legacyBoss.CurrentStage() == ChapterTwo::Stage::BellKeeper &&
+                        legacyBoss.BossMaximumHealth() <= game.ShotDamage() / game.ShotCooldown() * 12,
+                    "legacy_boss_hp_follows_rebalanced_combat_without_losing_stage");
+            std::ostringstream bossSave;
+            legacyBoss.Write(bossSave);
+            ChapterTwo reloadedBoss;
+            std::istringstream bossLoad(bossSave.str());
+            require(reloadedBoss.Read(bossLoad) &&
+                        reloadedBoss.BossMaximumHealth() == legacyBoss.BossMaximumHealth() &&
+                        reloadedBoss.CurrentStage() == legacyBoss.CurrentStage(),
+                    "rebalanced_boss_save_roundtrip");
+            game.growth = savedGrowth;
             require(game.Initialize() && game.StorageHealthy(), "new_isolated_profile");
             require(game.society.citizens.size() == 210, "seven_towns_210_residents");
             std::array<unsigned, TownWorld::Count> populations = {};
@@ -118,10 +153,8 @@ namespace Ashen
             const double travel = TownWorld::CenterSpacing * ChunkSize / TownWorld::PlayerSpeed;
             require(travel >= 19 && travel <= 21, "center_to_center_twenty_seconds");
             report["center_travel_seconds"] = travel;
-            game.jumpRequested = true;
             game.hero->Animate(.01f);
-            require(game.hero->motion == WorldActor::Motion::Jump && game.immunity > 0,
-                    "jump_motion_and_brief_protection");
+            require(game.hero->motion != WorldActor::Motion::Jump, "player_jump_action_disabled");
             game.hero->jumpRemaining = 0;
             game.hero->jumpCooldown = 0;
             game.hero->moving = false;
@@ -166,6 +199,9 @@ namespace Ashen
             game.farSimulation->WaitReady(1000);
             game.farSimulation->Poll(game);
             game.farSimulation.reset();
+            InventoryAndMarkets(game, require);
+            MapAndWaypoints(game, require);
+            OpenWorld(game, require);
             const auto deaths = game.society.Find(npcId)->deaths;
             game.society.citizens.at(npcId).reviveProtection = 0;
             game.society.DamageCitizen(game, npcId, 10000);
@@ -223,11 +259,18 @@ namespace Ashen
             require(game.saveTimer == 0 && !game.dirty, "overdue_autosave_not_starved");
             require(game.Save(), "atomic_world_commit");
             const auto coins = game.society.Find(npcId)->coins;
+            const bool portal = game.waypoints.Active(0);
+            const auto equipment = game.inventory.Equipped();
+            const auto potions = game.inventory.Quantity(ItemId::HealingPotion);
             game.Shutdown();
             require(game.Initialize() && game.StorageHealthy(), "database_profile_restart");
             require(game.society.Find(npcId)->coins == coins &&
                         game.RegionAt({PlanetWorld::LongitudeChunks, 10000})->harvested == 1,
                     "restart_preserves_npc_and_far_progress");
+            require(game.inventory.Equipped() == equipment &&
+                        game.inventory.Quantity(ItemId::HealingPotion) == potions,
+                    "inventory_and_equipment_persist_after_restart");
+            require(portal && game.waypoints.Active(0), "activated_waypoint_persists_after_restart");
             report["letters_delivered"] = game.society.lettersDelivered;
             report["migrations"] = game.society.migrationsCompleted;
             report["stored_regions"] = game.StoredRegionCount();

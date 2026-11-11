@@ -52,7 +52,9 @@ namespace Ashen
         MarketStall,
         BellAltar,
         Residence,
-        BellKeeper
+        BellKeeper,
+        Waypoint,
+        Exploration
     };
 
     enum class Nature

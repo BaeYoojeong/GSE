@@ -46,17 +46,6 @@ namespace Ashen
         const float rate = moving ? 16.f : 6.f;
         visualYaw = angle(visualYaw + difference * (1 - std::exp(-seconds * rate)));
         jumpCooldown = (std::max)(0.f, jumpCooldown - seconds);
-        if (kind == Kind::Player && game.jumpRequested && !game.Dead() && !game.inputBlocked &&
-            game.dialogue.empty())
-        {
-            if (jumpCooldown <= 0 && jumpRemaining <= 0)
-            {
-                jumpRemaining = AssetCatalog::ClipDuration("jump");
-                jumpCooldown = jumpRemaining + 1.f;
-                game.immunity = (std::max)(game.immunity, .25f);
-            }
-            game.jumpRequested = false;
-        }
         jumpRemaining = (std::max)(0.f, jumpRemaining - seconds);
         turnRemaining = (std::max)(0.f, turnRemaining - seconds);
         const Motion next = jumpRemaining > 0 ? Motion::Jump

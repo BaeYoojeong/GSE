@@ -136,15 +136,16 @@ namespace Ashen
             event.severity = event.type == "death" ? "warning" : "info";
             event.category = "life";
         }
-        else if (event.type == "trade" || event.type == "player_buy" || event.type == "player_sell" ||
-                 event.type == "death_loot" || event.type == "gift")
+        else if (event.type == "trade" || event.type == "player_buy" || event.type == "player_purchase" ||
+                 event.type == "player_sell" || event.type == "death_loot" || event.type == "gift")
         {
             event.category = "economy";
         }
 
         if (event.hasVillage &&
             (event.type == "murder" || event.type == "raid" || event.type == "rob_player" ||
-             event.type == "trade" || event.type == "player_buy" || event.type == "player_sell"))
+             event.type == "trade" || event.type == "player_buy" || event.type == "player_purchase" ||
+             event.type == "player_sell"))
         {
             const double second = std::floor(simulationSeconds);
             const auto slot = static_cast<std::size_t>(std::fmod(second, RecentEventSeconds));

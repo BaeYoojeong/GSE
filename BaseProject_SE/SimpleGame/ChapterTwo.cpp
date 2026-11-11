@@ -8,6 +8,12 @@
 
 namespace Ashen
 {
+    namespace
+    {
+        // Around ten seconds of sustained fire at the new maximum player strength.
+        constexpr float BossHealthLimit = 900;
+    } // namespace
+
     ChapterTwo::Stage ChapterTwo::CurrentStage() const
     {
         if (!(flags & 1u))
@@ -139,7 +145,8 @@ namespace Ashen
             game.supplies -= 6;
             flags |= 4u;
             // Snapshot strength once, so collecting upgrades cannot change a live boss's maximum HP.
-            bossMaximumHealth = (std::clamp)(game.ShotDamage() / game.ShotCooldown() * 10, 480.0f, 20000.0f);
+            bossMaximumHealth =
+                (std::clamp)(game.ShotDamage() / game.ShotCooldown() * 10, 480.0f, BossHealthLimit);
             if (const auto parent = game.chunks.find(Altar().chunk); parent != game.chunks.end())
             {
                 Spawn(game, parent->first, parent->second);
@@ -285,6 +292,15 @@ namespace Ashen
             !std::isfinite(bossMaximumHealth) || bossMaximumHealth < 480 || bossMaximumHealth > 20000)
         {
             return false;
+        }
+        // V1 saves may contain HP scaled from the old 185-damage/180ms weapon.
+        // Accept those saves, retain chapter flags, and normalize before any boss is spawned.
+        if (bossMaximumHealth > BossHealthLimit)
+        {
+            RenderProfiler::Event("chapter_boss_rebalanced",
+                                  "legacy_hp=" + std::to_string(bossMaximumHealth) +
+                                      "; new_hp=" + std::to_string(BossHealthLimit));
+            bossMaximumHealth = BossHealthLimit;
         }
         return true;
     }

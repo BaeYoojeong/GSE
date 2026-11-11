@@ -20,8 +20,10 @@ This program is free software under the What The Hell License.
 #include <string>
 #include <stdexcept>
 #include <fstream>
+#include <cmath>
 #include "ThirdParty/json.hpp"
 #include "PostProcessing.h"
+#include "DarkAgeRenderer.h"
 
 namespace
 {
@@ -101,6 +103,10 @@ namespace
         case GLFW_KEY_ESCAPE:
             WorldScene::Key(27, down);
             return;
+        case GLFW_KEY_ENTER:
+        case GLFW_KEY_KP_ENTER:
+            WorldScene::Key('\r', down);
+            return;
         case GLFW_KEY_TAB:
             WorldScene::Key('\t', down);
             return;
@@ -124,6 +130,61 @@ namespace
         else if ((key >= GLFW_KEY_0 && key <= GLFW_KEY_9) || key == GLFW_KEY_SPACE)
         {
             WorldScene::Key(static_cast<unsigned char>(key), down);
+        }
+    }
+
+    bool CursorPoint(GLFWwindow* window, Ashen::Vec2& point)
+    {
+        if (!State(window).focused || State(window).iconified)
+        {
+            return false;
+        }
+        int width = 0, height = 0, fbWidth = 0, fbHeight = 0;
+        double x = 0, y = 0;
+        glfwGetWindowSize(window, &width, &height);
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+        if (width <= 0 || height <= 0 || fbWidth <= 0 || fbHeight <= 0)
+        {
+            return false;
+        }
+        if (State(window).resized)
+        {
+            WorldScene::Resize(fbWidth, fbHeight);
+            State(window).resized = false;
+        }
+        glfwGetCursorPos(window, &x, &y);
+        return AshenRenderer::UiPoint(static_cast<float>(x * fbWidth / width),
+                                      static_cast<float>(y * fbHeight / height), point);
+    }
+
+    void Mouse(GLFWwindow* window, int button, int action, int modifiers)
+    {
+        if (button != GLFW_MOUSE_BUTTON_LEFT || (action != GLFW_PRESS && action != GLFW_RELEASE))
+        {
+            return;
+        }
+        Ashen::Vec2 point;
+        const bool valid =
+            CursorPoint(window, point) && !(modifiers & (GLFW_MOD_CONTROL | GLFW_MOD_ALT | GLFW_MOD_SUPER));
+        // Release outside the viewport or with modifiers still cancels a pending drag.
+        WorldScene::PointerButton(point.x, point.y, action == GLFW_PRESS, valid);
+    }
+
+    void Cursor(GLFWwindow* window, double, double)
+    {
+        Ashen::Vec2 point;
+        if (CursorPoint(window, point))
+        {
+            WorldScene::PointerMove(point.x, point.y);
+        }
+    }
+
+    void Scroll(GLFWwindow* window, double, double steps)
+    {
+        Ashen::Vec2 point;
+        if (CursorPoint(window, point))
+        {
+            WorldScene::Scroll(point.x, point.y, steps);
         }
     }
 
@@ -218,7 +279,23 @@ namespace
         send(GLFW_KEY_SPACE, GLFW_RELEASE);
         check(!WorldScene::InspectInput().attack, "attack_released");
         send(GLFW_KEY_J);
-        check(WorldScene::InspectInput().jump, "jump_requested");
+        check(!WorldScene::InspectInput().attack && !WorldScene::InspectInput().sprint,
+              "removed_jump_key_ignored");
+        send(GLFW_KEY_I);
+        check(WorldScene::InspectInput().itemPanel, "inventory_key_opens_panel");
+        send(GLFW_KEY_LEFT);
+        send(GLFW_KEY_C);
+        send(GLFW_KEY_SPACE);
+        const auto inventoryInput = WorldScene::InspectInput();
+        check(!inventoryInput.attack && !inventoryInput.sprint &&
+                  std::none_of(inventoryInput.arrows.begin(), inventoryInput.arrows.end(),
+                               [](bool held) { return held; }),
+              "inventory_owns_input_without_player_movement_or_attacks");
+        send(GLFW_KEY_I);
+        check(!WorldScene::InspectInput().itemPanel, "inventory_key_closes_panel");
+        send(GLFW_KEY_LEFT, GLFW_RELEASE);
+        send(GLFW_KEY_C, GLFW_RELEASE);
+        send(GLFW_KEY_SPACE, GLFW_RELEASE);
         const bool bloom = PostProcessing::Options().bloom;
         send(GLFW_KEY_F2);
         check(PostProcessing::Options().bloom != bloom, "function_key_press");
@@ -233,7 +310,7 @@ namespace
         Focus(window, GLFW_FALSE);
         const auto lost = WorldScene::InspectInput();
         check(std::none_of(lost.arrows.begin(), lost.arrows.end(), [](bool value) { return value; }) &&
-                  !lost.attack && !lost.sprint && !lost.jump,
+                  !lost.attack && !lost.sprint,
               "focus_callback_clears_all_inputs");
         send(GLFW_KEY_C);
         check(!WorldScene::InspectInput().sprint, "unfocused_press_ignored");
@@ -257,6 +334,10 @@ namespace
                   State(window).resizeEvents > prior,
               "framebuffer_resize_callback");
         WorldScene::Resize(width, height);
+        Ashen::Vec2 center;
+        check(AshenRenderer::UiPoint(width * .5f, height * .5f, center) && std::fabs(center.x - 500) < 2 &&
+                  std::fabs(center.y - 350) < 2 && !AshenRenderer::UiPoint(-1, -1, center),
+              "map_pointer_mapping_and_letterbox_rejection");
         Render(window);
         check(glGetError() == GL_NO_ERROR, "resized_render_has_no_gl_error");
         Iconify(window, GLFW_TRUE);
@@ -376,6 +457,9 @@ namespace
         glfwSetWindowUserPointer(window, &state);
         glfwSetFramebufferSizeCallback(window, FramebufferSize);
         glfwSetKeyCallback(window, Key);
+        glfwSetMouseButtonCallback(window, Mouse);
+        glfwSetCursorPosCallback(window, Cursor);
+        glfwSetScrollCallback(window, Scroll);
         glfwSetWindowFocusCallback(window, Focus);
         glfwSetWindowIconifyCallback(window, Iconify);
         state.focused = glfwGetWindowAttrib(window, GLFW_FOCUSED) == GLFW_TRUE;
@@ -400,8 +484,10 @@ namespace
             return FrameworkBenchmark::Run(
                 benchmark, "GLFW", [] { glfwPollEvents(); }, [&] { glfwSwapBuffers(window); });
         }
-        std::cout << "Ashen Inheritance | GLFW | Arrows: move | C: run | J: jump | Space: attack\n"
-                     "E: interact | G: share | B/N: buy/sell | P: PK | V: residents | M: map | Q: quest\n"
+        std::cout << "Ashen Inheritance | GLFW | Arrows: move | C: run | Space: attack | E: interact/trade | "
+                     "I: inventory | M: map\n"
+                     "E: interact/trade | G: share | I: inventory | H: potion | P: PK | V: residents | M: "
+                     "map | Q: quest\n"
                      "Tab: life journal | R: next life | F8: save | F9: reload | F10: Blender export\n";
         double lastUpdate = glfwGetTime();
         while (!glfwWindowShouldClose(window))

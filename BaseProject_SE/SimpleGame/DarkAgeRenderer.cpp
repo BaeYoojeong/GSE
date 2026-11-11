@@ -15,6 +15,7 @@
 #include "PostProcessing.h"
 #include "MeshCache.h"
 #include "ShaderProgram.h"
+#include "WorldLayout.h"
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -39,6 +40,7 @@ namespace
     GLint instancingLocation = -1, radianceLocation = -1, localLocation = -1;
     RenderBatch::Instance current;
     GLuint currentTexture = 0;
+    int currentTextureMode = 1, framebufferHeight = 700;
     int viewportX = 0, viewportY = 0, viewportWidth = 1000, viewportHeight = 700;
     std::vector<Vertex> vertices;
     std::uint64_t textFrame = 0;
@@ -102,7 +104,7 @@ namespace
         glUniform1f(opacityLocation, current.opacity);
         glUniform1f(emissionScaleLocation, current.emissionScale);
         glUniform1f(radianceLocation, current.radiance);
-        glUniform1i(textureLocation, currentTexture ? 1 : 0);
+        glUniform1i(textureLocation, currentTexture ? currentTextureMode : 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, currentTexture);
         glBindVertexArray(vao);
@@ -122,6 +124,7 @@ namespace
         current.y = anchor.y;
         current.projection = static_cast<float>(projection);
         currentTexture = 0;
+        currentTextureMode = 1;
     }
 
     template <typename Builder>
@@ -148,7 +151,7 @@ namespace
         }
         if (mesh)
         {
-            RenderBatch::Submit(mesh, current, currentTexture);
+            RenderBatch::Submit(mesh, current, currentTexture, currentTextureMode);
             vertices.clear();
         }
         else
@@ -158,7 +161,7 @@ namespace
     }
 
     void Quad(float x, float y, float width, float height, Color color, float radiance = 1,
-              GLuint texture = 0)
+              GLuint texture = 0, int textureMode = 1)
     {
         if (width <= 0 || height <= 0 || color.a <= 0)
         {
@@ -166,6 +169,7 @@ namespace
         }
         const auto saved = current;
         const auto savedTexture = currentTexture;
+        const auto savedMode = currentTextureMode;
         current.localX = x;
         current.localY = y;
         current.sx = width;
@@ -176,6 +180,7 @@ namespace
         current.a = color.a;
         current.radiance = radiance;
         currentTexture = texture;
+        currentTextureMode = textureMode;
         MeshCache::Key key = {};
         key[0] = 0x55495144;
         DrawCachedMesh(key,
@@ -188,12 +193,14 @@ namespace
                        });
         current = saved;
         currentTexture = savedTexture;
+        currentTextureMode = savedMode;
     }
 
-    void UiQuad(float x, float y, float width, float height, Color color, GLuint texture = 0)
+    void UiQuad(float x, float y, float width, float height, Color color, GLuint texture = 0,
+                int textureMode = 1)
     {
         Transform({x, y}, 0);
-        Quad(0, 0, width, height, color, 1, texture);
+        Quad(0, 0, width, height, color, 1, texture, textureMode);
     }
 
     Texture MakeText(const std::wstring& s, int size)
@@ -269,7 +276,7 @@ namespace
             {
                 auto h = game.Hash(actor.chunk, row * 24 + col + 9000);
                 float variation = static_cast<float>(h % 5) * .009f;
-                bool road = col >= 10 && col <= 13 || row >= 10 && row <= 13;
+                bool road = WorldLayout::Road(actor.chunk, col, row);
                 Color color = road ? (village ? Color{.25f, .25f, .23f, 1} : Color{.22f, .23f, .18f, 1})
                               : biome == 1 ? Color{.15f, .20f, .18f, 1}
                               : biome == 2 ? Color{.23f, .22f, .23f, 1}
@@ -307,9 +314,9 @@ namespace
                 Rect(305 + i * 30.0f, 434, 18, 6, Stone);
             }
         }
-        else
+        else if (WorldLayout::Camp(game, actor.chunk) || game.Lit(actor.chunk))
         {
-            // Small roadside camp, without a settlement plaza or repeated town buildings.
+            // Camps are landmarks, rather than a clearing repeated in every chunk.
             Disc(384, 384, 28, 18, {.24f, .22f, .17f, 1});
         }
     }
@@ -365,6 +372,56 @@ namespace
         case Kind::BellKeeper:
             ChapterGeometry::Keeper(vertices, actor.health <= game.chapter.BossMaximumHealth() * .5f);
             break;
+        case Kind::Exploration:
+        {
+            const auto site = static_cast<WorldLayout::Site>(actor.variant);
+            if (site == WorldLayout::Site::Camp)
+            {
+                Rect(-36, -3, 72, 8, Wood);
+                Tri(0, -57, -34, -3, 34, -3, {.32f, .33f, .25f, 1});
+                Tri(0, -57, 0, -3, 34, -3, {.21f, .24f, .22f, 1});
+                Tri(0, -31, -10, -3, 10, -3, Ink);
+                Rect(-2, -61, 4, 8, Wood);
+            }
+            else if (site == WorldLayout::Site::Ruins)
+            {
+                Rect(-54, -4, 108, 10, Stone);
+                Rect(-42, -78, 17, 78, Stone);
+                Rect(27, -59, 16, 59, Stone);
+                Rect(-46, -83, 29, 10, StoneLight);
+                Rect(22, -64, 25, 10, StoneLight);
+                Rect(-26, -49, 18, 9, Stone);
+                Rect(8, -34, 21, 8, Stone);
+                Rect(-17, -18, 34, 18, {.23f, .28f, .28f, 1});
+                Rect(-2, -16, 4, 11, {.52f, .67f, .65f, 1}, 1.3f);
+            }
+            else
+            {
+                Rect(-34, -1, 68, 8, {.15f, .22f, .18f, 1});
+                for (int stem = 0; stem < 7; ++stem)
+                {
+                    const float x = -30.f + stem * 10;
+                    const float height = 16.f + (stem % 3) * 7;
+                    Rect(x, -height, 3, height, {.28f, .44f, .29f, 1});
+                    Rect(x - 4, -height - 5, 11, 6, {.56f, .63f, .39f, 1});
+                }
+            }
+            break;
+        }
+        case Kind::Waypoint:
+        {
+            const bool active = game.waypoints.Active(static_cast<unsigned>(actor.slot));
+            const Color gem = active ? Color{.24f, .85f, .96f, 1} : Color{.22f, .31f, .34f, 1};
+            const float emission = active ? 3.2f : 1;
+            Rect(-26, -4, 52, 9, Stone);
+            Rect(-20, -50, 7, 48, Stone);
+            Rect(13, -50, 7, 48, Stone);
+            Rect(-23, -54, 46, 7, {.30f, .34f, .36f, 1});
+            Tri(0, -49, -9, -31, 0, -13, gem, emission);
+            Tri(0, -49, 0, -13, 9, -31, gem, emission);
+            Rect(-9, -4, 18, 3, gem, emission);
+            break;
+        }
         case Kind::MarketStall:
             Rect(-35, -28, 70, 28, Wood);
             Rect(-40, -66, 80, 13, {.28f, .40f, .37f, 1});
@@ -616,6 +673,9 @@ namespace
         // Include only inputs read by Model/Character. Position, time and opacity remain uniforms.
         switch (actor.kind)
         {
+        case Kind::Waypoint:
+            key[2] = game.waypoints.Active(static_cast<unsigned>(actor.slot)) ? 1 : 0;
+            break;
         case Kind::Residence:
             key[2] = actor.variant % 4;
             key[9] = BlenderAssets::Revision("cottage_" + std::to_string(actor.variant % 4));
@@ -635,9 +695,15 @@ namespace
             key[6] = static_cast<unsigned>(hash >> 32);
             key[7] = game.Biome(actor.chunk);
             key[8] = TownWorld::Index(actor.chunk) >= 0 ? 2 : game.society.IsVillage(actor.chunk) ? 1 : 0;
-            key[9] = 3; // Ground geometry now distinguishes wilderness and settlements.
+            key[9] = 4; // Coherent biomes, sparse roads and procedural camps.
+            key[8] |= 4u * ((WorldLayout::Road(actor.chunk, 11, 0) ? 1u : 0u) |
+                            (WorldLayout::Road(actor.chunk, 0, 11) ? 2u : 0u) |
+                            (WorldLayout::Camp(game, actor.chunk) || game.Lit(actor.chunk) ? 4u : 0u));
             break;
         }
+        case Kind::Exploration:
+            key[2] = actor.variant;
+            break;
         case Kind::House:
         case Kind::Chapel:
             key[2] = actor.variant;
@@ -1016,6 +1082,7 @@ void AshenRenderer::Resize(int width, int height)
 {
     width = (std::max)(1, width);
     height = (std::max)(1, height);
+    framebufferHeight = height;
     float scale = (std::min)(width / 1000.0f, height / 700.0f);
     viewportWidth = (std::max)(1, static_cast<int>(1000 * scale));
     viewportHeight = (std::max)(1, static_cast<int>(700 * scale));
@@ -1144,6 +1211,80 @@ void AshenRenderer::World(const Game& game)
 void AshenRenderer::Panel(float x, float y, float width, float height, Color color)
 {
     UiQuad(x, y, width, height, color);
+}
+
+unsigned AshenRenderer::CreateImage(int width, int height, const std::vector<unsigned char>& rgba)
+{
+    if (width <= 0 || height <= 0 || width > 2048 || height > 2048 ||
+        rgba.size() != static_cast<std::size_t>(width) * height * 4)
+    {
+        return 0;
+    }
+    RenderBatch::Flush("image_create");
+    GLuint image = 0;
+    glGenTextures(1, &image);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, image);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba.data());
+    GLint allocated = 0;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &allocated);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    if (allocated != width)
+    {
+        glDeleteTextures(1, &image);
+        return 0;
+    }
+    RenderProfiler::Uploaded(rgba.size());
+    return image;
+}
+
+void AshenRenderer::DeleteImage(unsigned texture)
+{
+    if (texture)
+    {
+        RenderBatch::Flush("image_delete");
+        glDeleteTextures(1, &texture);
+    }
+}
+
+void AshenRenderer::Image(float x, float y, float width, float height, unsigned texture)
+{
+    if (texture)
+    {
+        UiQuad(x, y, width, height, {1, 1, 1, 1}, texture, 2);
+    }
+}
+
+void AshenRenderer::Clip(float x, float y, float width, float height)
+{
+    RenderBatch::Flush("ui_clip_begin");
+    const int left = viewportX + static_cast<int>(std::floor(x * viewportWidth / 1000));
+    const int bottom = viewportY + static_cast<int>(std::floor((700 - y - height) * viewportHeight / 700));
+    const int right = viewportX + static_cast<int>(std::ceil((x + width) * viewportWidth / 1000));
+    const int top = viewportY + static_cast<int>(std::ceil((700 - y) * viewportHeight / 700));
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(left, bottom, (std::max)(0, right - left), (std::max)(0, top - bottom));
+}
+
+void AshenRenderer::EndClip()
+{
+    RenderBatch::Flush("ui_clip_end");
+    glDisable(GL_SCISSOR_TEST);
+}
+
+bool AshenRenderer::UiPoint(float x, float y, Ashen::Vec2& point)
+{
+    const int top = framebufferHeight - viewportY - viewportHeight;
+    if (x < viewportX || x >= viewportX + viewportWidth || y < top || y >= top + viewportHeight)
+    {
+        return false;
+    }
+    point = {(x - viewportX) * 1000 / viewportWidth, (y - top) * 700 / viewportHeight};
+    return true;
 }
 
 void AshenRenderer::Text(float x, float y, const std::wstring& text, int size, Color color)

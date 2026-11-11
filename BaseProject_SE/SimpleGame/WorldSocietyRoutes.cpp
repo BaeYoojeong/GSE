@@ -76,6 +76,11 @@ namespace Ashen
         {
             return TownWorld::Door(npc.houseLot);
         }
+        if (activity == Activity::Trade)
+        {
+            return MarketDestination(npc);
+        }
+
         std::set<ChunkKey> villages = {npc.village};
         for (const auto& pair : citizens)
         {
@@ -86,105 +91,11 @@ namespace Ashen
                 villages.insert(key);
             }
         }
-        unsigned merchantRank = 0;
-        for (const auto& pair : citizens)
-        {
-            if (pair.first < npc.id && pair.second.village == npc.village &&
-                pair.second.profession == Profession::Merchant)
-            {
-                ++merchantRank;
-            }
-        }
-
         if (activity == Activity::Raid)
         {
             // Search the roads outside the home village when no profitable person is in sight.
             const Vec2 patrol[] = {{-1300, 400}, {2080, 600}, {384, -1300}, {384, 2100}};
             return patrol[(npc.id + npc.journey) % 4];
-        }
-
-        if (activity == Activity::Trade)
-        {
-            Vec2 market = MarketPosition(merchantRank % 2);
-            if (npc.profession == Profession::Merchant && IsMarketKeeper(npc))
-            {
-                // Keepers occupy different shops; extra keepers retain their own counter space.
-                market.x += static_cast<float>((merchantRank / 2) % 3) * 24 - 24;
-                return market;
-            }
-            if (npc.profession == Profession::Merchant)
-            {
-                std::vector<ChunkKey> destinations;
-                for (ChunkKey village : villages)
-                {
-                    if (!(village == npc.village))
-                    {
-                        destinations.push_back(village);
-                    }
-                }
-                if (!destinations.empty())
-                {
-                    const ChunkKey destination = destinations[(npc.id + npc.journey) % destinations.size()];
-                    market = InFrame(destination, MarketPosition((npc.id + npc.journey) % 2), npc.village);
-                }
-                else
-                {
-                    market = MarketPosition((merchantRank + npc.journey + 1) % 2);
-                }
-            }
-            else
-            {
-                float bestCost = 1e20f;
-                for (const auto& pair : citizens)
-                {
-                    const auto& merchant = pair.second;
-                    if (!(merchant.village == npc.village) || merchant.journeyKind != JourneyKind::None ||
-                        merchant.profession != Profession::Merchant || merchant.health <= 0 ||
-                        merchant.hostileSeconds > 0 || merchant.activity == Activity::Raid)
-                    {
-                        continue;
-                    }
-                    const bool selling = npc.goods > 1 && merchant.goods < 16 && merchant.coins >= 2 &&
-                                         npc.coins <= 1000000 - 2;
-                    const bool buying = npc.goods < 2 && merchant.goods > 0 && npc.coins >= 3 &&
-                                        merchant.coins <= 1000000 - 3;
-                    if (!selling && !buying)
-                    {
-                        continue;
-                    }
-                    Location destination = Locate(merchant.village, merchant.position);
-                    if (!IsAtMarket(merchant))
-                    {
-                        destination = merchant.goalActivity == Activity::Trade
-                                          ? Locate(merchant.village, merchant.activityGoal)
-                                          : Location{merchant.village, MarketPosition(merchant.id % 2)};
-                    }
-                    if (!IsVillage(destination.chunk))
-                    {
-                        continue;
-                    }
-                    const int town = TownWorld::At(destination.chunk);
-                    const ChunkKey center = TownWorld::Towns()[town].center;
-                    const Vec2 point = InFrame(
-                        center,
-                        MarketPosition(NearestMarket(InFrame(destination.chunk, destination.local, center))),
-                        npc.village);
-                    if (!Reachable(point))
-                    {
-                        continue;
-                    }
-                    const float cost =
-                        std::sqrt(DistanceSquared(npc.position, point)) + (IsAtMarket(merchant) ? 0 : 180);
-                    if (cost < bestCost)
-                    {
-                        bestCost = cost;
-                        market = point;
-                    }
-                }
-            }
-            // A small deterministic customer ring preserves trading reach without a shared center.
-            const float angle = static_cast<float>((npc.id * 7 + npc.journey * 3) % 16) * .39269908f;
-            return {market.x + std::cos(angle) * 38, market.y + std::sin(angle) * 38};
         }
 
         static constexpr Vec2 inns[] = {{116, 438}, {248, 424}, {476, 438},

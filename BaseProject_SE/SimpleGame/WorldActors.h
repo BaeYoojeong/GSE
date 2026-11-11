@@ -34,6 +34,28 @@ namespace Ashen
         void OnUpdate(float seconds) override;
     };
 
+    class MarketStallActor final : public WorldActor
+    {
+      public:
+        explicit MarketStallActor(Game& owner);
+    };
+
+    class ExplorationActor final : public InteractiveActor
+    {
+      public:
+        explicit ExplorationActor(Game& owner);
+        bool Interact() override;
+        std::wstring InteractionPrompt() const override;
+    };
+
+    class WaypointActor final : public InteractiveActor
+    {
+      public:
+        explicit WaypointActor(Game& owner);
+        bool Interact() override;
+        std::wstring InteractionPrompt() const override;
+    };
+
     class QuarryActor final : public WorldActor
     {
       public:

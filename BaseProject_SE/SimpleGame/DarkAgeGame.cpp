@@ -30,6 +30,11 @@ namespace Ashen
         checkpoint = {};
         life = {};
         growth = {};
+        inventory = {};
+        requestedShop = tradingMerchant = 0;
+        requestedMap = -1;
+        waypoints = {};
+        healingCooldown = 0;
         health = MaxHealth();
         supplies = 3;
         camera = {};
@@ -72,7 +77,7 @@ namespace Ashen
 
         Notify(Dead()               ? L"한 생명이 끝났고, 그 삶을 물려받은 누군가가 태어났습니다."
                : LevelOneComplete() ? chapter.Objective()
-                                    : L"마을에서 깨어났습니다. V 주민 현황 · E 대화 · B/N 거래 · P PK 전환");
+                                    : L"E 상호작용·상인 거래 · I 가방 · M 지도 · 포탈을 활성화해 보세요");
         return true;
     }
 
@@ -90,7 +95,7 @@ namespace Ashen
         }
 
         attack = false;
-        sprint = jumpRequested = false;
+        sprint = false;
 
         if (hero)
         {
@@ -139,6 +144,7 @@ namespace Ashen
         }
 
         saveTimer += seconds;
+        healingCooldown = (std::max)(0.0f, healingCooldown - seconds);
         const bool wasAlive = !Dead();
         immunity = (std::max)(0.0f, immunity - seconds);
         society.Update(*this, societySeconds);
@@ -237,6 +243,9 @@ namespace Ashen
             return;
         }
 
+        requestedShop = tradingMerchant = 0;
+        requestedMap = -1;
+        healingCooldown = 0;
         const std::uint64_t next = life.id + 1;
         life = {};
         life.id = next;

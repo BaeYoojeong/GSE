@@ -327,4 +327,30 @@
     <None Include="Tools\compare_framework_benchmarks.py" />
   </ItemGroup>
   <ItemGroup><ClCompile Include="AsyncLogWriter.cpp" /><ClInclude Include="AsyncLogWriter.h" /><None Include="STUTTER_ANALYSIS_KR.md" /></ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ItemCatalog.h" />
+    <ClInclude Include="Inventory.h" />
+    <ClInclude Include="InventoryInterface.h" />
+    <ClCompile Include="ItemCatalog.cpp" />
+    <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="PlayerInventory.cpp" />
+    <ClCompile Include="InventoryInterface.cpp" />
+    <ClCompile Include="WorldSocietyMarket.cpp" />
+    <ClCompile Include="ShopInventoryChecks.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Waypoints.h" />
+    <ClInclude Include="WorldMap.h" />
+    <ClCompile Include="Waypoints.cpp" />
+    <ClCompile Include="WaypointTravel.cpp" />
+    <ClCompile Include="WorldMap.cpp" />
+    <ClCompile Include="MapPortalChecks.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WorldLayout.h" />
+    <ClCompile Include="WorldLayout.cpp" />
+    <ClCompile Include="ExplorationActor.cpp" />
+    <ClCompile Include="OpenWorldChecks.cpp" />
+    <None Include="OPEN_WORLD_KR.md" />
+  </ItemGroup>
 </Project>

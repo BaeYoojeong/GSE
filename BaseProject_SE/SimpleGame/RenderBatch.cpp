@@ -8,6 +8,7 @@
 namespace
 {
     GLuint program = 0, vao = 0, buffer = 0, texture = 0;
+    int textureMode = 1;
     GLint instancingLocation = -1, textureLocation = -1;
     std::vector<RenderBatch::Instance> instances;
     std::vector<MeshCache::Handle> leases;
@@ -63,7 +64,7 @@ bool RenderBatch::Initialize(GLuint worldProgram)
     return instancingLocation >= 0;
 }
 
-void RenderBatch::Submit(const MeshCache::Handle& mesh, Instance instance, GLuint image)
+void RenderBatch::Submit(const MeshCache::Handle& mesh, Instance instance, GLuint image, int imageMode)
 {
     if (!mesh)
     {
@@ -73,7 +74,7 @@ void RenderBatch::Submit(const MeshCache::Handle& mesh, Instance instance, GLuin
     const auto maximum = (std::max)(maximumVertices, count);
     if (!instances.empty())
     {
-        if (image != texture)
+        if (image != texture || imageMode != textureMode)
         {
             Flush("texture");
         }
@@ -89,6 +90,7 @@ void RenderBatch::Submit(const MeshCache::Handle& mesh, Instance instance, GLuin
     instance.first = mesh->first;
     instance.count = count;
     texture = image;
+    textureMode = imageMode;
     maximumVertices = (std::max)(maximumVertices, count);
     usefulVertices += count;
     instances.push_back(instance);
@@ -107,7 +109,7 @@ void RenderBatch::Flush(const char* reason)
     }
     glUseProgram(program);
     glUniform1i(instancingLocation, 1);
-    glUniform1i(textureLocation, texture ? 1 : 0);
+    glUniform1i(textureLocation, texture ? textureMode : 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     glActiveTexture(GL_TEXTURE6);
@@ -145,4 +147,5 @@ void RenderBatch::Shutdown()
         glDeleteVertexArrays(1, &vao);
     }
     program = vao = buffer = texture = 0;
+    textureMode = 1;
 }

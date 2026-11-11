@@ -10,6 +10,9 @@ Windows 10/11에서 Visual Studio 2022 이상의 ‘C++를 사용한 데스크�
 msbuild BaseProject_SE\SimpleGame.sln /m /p:Configuration=Release /p:Platform=x64
 ```
 
+- [이미지 지도·포탈 활성화·상인 상호작용](BaseProject_SE/SimpleGame/MAP_PORTALS_KR.md)
+- [상점·무기·물약·인벤토리와 조작](BaseProject_SE/SimpleGame/SHOP_INVENTORY_KR.md)
+- [화면 선명도·플레이어 공격 조정](BaseProject_SE/SimpleGame/CLARITY_AND_COMBAT_KR.md)
 - [프레임 끊김 원인·개선·재현 방법](BaseProject_SE/SimpleGame/STUTTER_ANALYSIS_KR.md)
 - [GLFW 전환·입력·성능 검증](BaseProject_SE/SimpleGame/GLFW_MIGRATION_KR.md)
 - [포함한 GLFW 라이브러리와 빌드 구성](BaseProject_SE/SimpleGame/Dependencies/GLFW/README_KR.md)
@@ -17,3 +20,5 @@ msbuild BaseProject_SE\SimpleGame.sln /m /p:Configuration=Release /p:Platform=x6
 
 별도 제작 중인 외부 GLB 자산 폴더는 `BaseProject_SE/SimpleGame/Assets/모델.txt`의 root로 지정합니다. 해당 폴더가 없으면 저장소에 포함된 기본 모델을 사용합니다.
 
+
+- [오픈월드 탐험·동적 지도 개선](BaseProject_SE/SimpleGame/OPEN_WORLD_KR.md)

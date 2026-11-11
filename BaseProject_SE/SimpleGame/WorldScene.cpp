@@ -4,6 +4,9 @@
 #include "PostProcessing.h"
 #include "AssetCatalog.h"
 #include "RenderProfiler.h"
+#include "InventoryInterface.h"
+#include "WorldMap.h"
+#include "WorldLayout.h"
 #include <algorithm>
 #include "WindowInput.h"
 #include <sstream>
@@ -63,8 +66,9 @@ namespace
 
         Panel(360, 16, 320, 67, PanelColor);
         Text(372, 23,
-             L"피해 " + std::to_wstring(static_cast<int>(game.ShotDamage())) + L"  간격 " +
-                 std::to_wstring(static_cast<int>(game.ShotCooldown() * 1000)) + L"ms  사거리 360",
+             std::wstring(Ashen::FindItem(game.inventory.Equipped())->name) + L"  피해 " +
+                 std::to_wstring(static_cast<int>(game.ShotDamage())) + L"  간격 " +
+                 std::to_wstring(static_cast<int>(game.ShotCooldown() * 1000)) + L"ms",
              15);
         Text(372, 50,
              game.growth.magnetSeconds > 0
@@ -87,7 +91,11 @@ namespace
         Panel(18, 134, 964, 30, PanelColor);
         Text(30, 141,
              (targetTown >= 0 || !game.LevelOneComplete() || game.chapter.Complete()
-                  ? game.VillageDirection(targetTown)
+                  ? (Ashen::TownWorld::At(game.PlayerLocation().chunk) < 0 && targetTown < 0
+                         ? std::wstring(
+                               Ashen::WorldLayout::BiomeName(game.Biome(game.PlayerLocation().chunk))) +
+                               L" · 변경 탐험 · M 지도 / 캠프와 폐허를 찾아보세요"
+                         : game.VillageDirection(targetTown))
                   : game.chapter.Direction(game)),
              15, Gold);
 
@@ -104,7 +112,8 @@ namespace
             Text(44, 541, game.notice, 16, Gold);
         }
 
-        if (!game.Dead() && game.dialogue.empty() && !journal && !census && !objectives && !atlas)
+        if (!game.Dead() && game.dialogue.empty() && !journal && !census && !objectives && !atlas &&
+            !InventoryInterface::IsOpen())
         {
             if (const auto* nearest = game.Nearest())
             {
@@ -115,8 +124,7 @@ namespace
 
         Panel(0, 637, 1000, 63, PanelColor);
         Text(22, 646,
-             L"방향키 이동  C 달리기  J 점프  Space 공격  E 대화  B/N 거래  P PK  V 주민  M 지도  Q 원정",
-             15);
+             L"방향키 이동  C 달리기  Space 공격  E 상호작용·상인 거래  I 가방  H 물약  M 지도  Q 원정", 15);
         Text(22, 675, game.Lesson(), 14, Gold);
 
         if (!game.dialogue.empty())
@@ -195,20 +203,7 @@ namespace
         }
         if (atlas && !game.Dead())
         {
-            Panel(54, 170, 892, 440, PanelColor);
-            Text(76, 188, L"일곱 마을 · 숫자 1~7을 눌러 목적지 선택", 22, Gold);
-            for (unsigned i = 0; i < Ashen::TownWorld::Count; ++i)
-            {
-                const auto& town = Ashen::TownWorld::Towns()[i];
-                Text(76, 235 + i * 38.0f,
-                     std::to_wstring(i + 1) + L". " + town.name + L" · (" + std::to_wstring(town.center.x) +
-                         L"," + std::to_wstring(town.center.y) + L")",
-                     18);
-            }
-            Text(76, 498, game.PlanetStatus(), 13);
-            Text(76, 524, L"이웃 마을 중심 사이 약 20초 · 기본 보행 기준 · 길을 따라 자유롭게 이동", 16);
-            Text(76, 564, L"0 원정/가까운 마을 안내 복귀 · M / Esc 닫기 · 세계 시간은 계속 흐릅니다", 15,
-                 Gold);
+            WorldMap::Render(game, targetTown);
         }
         if (game.Dead())
         {
@@ -237,6 +232,7 @@ namespace
 
 bool WorldScene::Initialize(bool benchmark, bool stress)
 {
+    InventoryInterface::Close(game);
     journal = objectives = atlas = false;
     targetTown = -1;
     census = false;
@@ -262,6 +258,8 @@ bool WorldScene::Initialize(bool benchmark, bool stress)
 
 void WorldScene::Shutdown()
 {
+    InventoryInterface::Close(game);
+    WorldMap::Shutdown();
     game.Shutdown();
     AshenRenderer::Shutdown();
     ready = false;
@@ -276,6 +274,7 @@ void WorldScene::Render()
 
     AshenRenderer::World(game);
     Interface();
+    InventoryInterface::Render(game);
     AshenRenderer::EndFrame();
 }
 
@@ -283,8 +282,25 @@ void WorldScene::Update(float seconds)
 {
     if (ready)
     {
-        game.inputBlocked = journal || census || objectives || atlas;
+        InventoryInterface::Update(game);
+        if (game.requestedMap >= 0 && !game.Dead())
+        {
+            const int selected = game.requestedMap;
+            InventoryInterface::Close(game);
+            journal = census = objectives = false;
+            atlas = true;
+            targetTown = selected;
+            WorldMap::FocusPlayer(game);
+            game.requestedMap = -1;
+            game.ClearInput();
+        }
+        game.inputBlocked = journal || census || objectives || atlas || InventoryInterface::IsOpen();
         game.Update(seconds);
+        InventoryInterface::Update(game);
+        if (!atlas || game.Dead())
+        {
+            WorldMap::CancelDrag();
+        }
         if (game.Dead())
         {
             journal = census = objectives = atlas = false;
@@ -300,6 +316,7 @@ void WorldScene::Resize(int width, int height)
 
 void WorldScene::ClearInput()
 {
+    WorldMap::CancelDrag();
     game.ClearInput();
 }
 
@@ -318,7 +335,7 @@ void WorldScene::Arrow(SpecialKey key, bool down)
         {
         case SpecialKey::F1:
             fx.enabled = !fx.enabled;
-            game.Notify(fx.enabled ? L"Bloom · 비넷 · 가장자리 블러 켜짐"
+            game.Notify(fx.enabled ? L"후처리 켜짐 · Bloom/비넷/블러는 개별 설정을 따릅니다."
                                    : L"연출 효과 꺼짐 · HDR 톤 매핑은 유지합니다.");
             return;
         case SpecialKey::F2:
@@ -341,7 +358,7 @@ void WorldScene::Arrow(SpecialKey key, bool down)
             return;
         case SpecialKey::F7:
             PostProcessing::Reset();
-            game.Notify(L"HDR · Bloom · 비넷 · 가장자리 블러 기본값을 복원했습니다.");
+            game.Notify(L"선명한 기본값 복원 · HDR/Bloom/비넷 켜짐 · 가장자리 블러 꺼짐");
             return;
         case SpecialKey::F10:
             AssetCatalog::ExportBlender();
@@ -358,6 +375,10 @@ void WorldScene::Arrow(SpecialKey key, bool down)
         }
     }
 
+    if (InventoryInterface::Arrow(key, down))
+    {
+        return;
+    }
     if (key >= SpecialKey::Left && key <= SpecialKey::Down)
     {
         game.arrows[static_cast<unsigned>(key) - static_cast<unsigned>(SpecialKey::Left)] =
@@ -372,19 +393,14 @@ void WorldScene::Key(unsigned char key, bool down)
         return;
     }
 
+    if (InventoryInterface::Key(game, key, down))
+    {
+        return;
+    }
     if (key == 'c' || key == 'C')
     {
         game.sprint = down && !game.inputBlocked && !journal && !census && !objectives && !atlas &&
                       game.dialogue.empty();
-        return;
-    }
-    if (key == 'j' || key == 'J')
-    {
-        if (down && !game.inputBlocked && !journal && !census && !objectives && !atlas &&
-            game.dialogue.empty())
-        {
-            game.jumpRequested = true;
-        }
         return;
     }
     if (key == ' ')
@@ -398,6 +414,12 @@ void WorldScene::Key(unsigned char key, bool down)
         return;
     }
 
+    if ((key == 'i' || key == 'I') && !game.Dead())
+    {
+        journal = census = objectives = atlas = false;
+        InventoryInterface::OpenInventory(game);
+        return;
+    }
     if ((key == 'q' || key == 'Q' || key == 'm' || key == 'M') && !game.Dead() && game.dialogue.empty())
     {
         const bool quest = key == 'q' || key == 'Q';
@@ -410,16 +432,44 @@ void WorldScene::Key(unsigned char key, bool down)
         else
         {
             atlas = open;
+            if (open)
+            {
+                WorldMap::FocusPlayer(game);
+            }
         }
+        WorldMap::CancelDrag();
         game.inputBlocked = open;
         game.ClearInput();
+        return;
+    }
+    if (atlas && (key == 'f' || key == 'F' || key == 'g' || key == 'G'))
+    {
+        if (key == 'f' || key == 'F')
+        {
+            WorldMap::FocusPlayer(game);
+        }
+        else
+        {
+            WorldMap::Overview();
+        }
         return;
     }
     if (atlas && key >= '0' && key <= '7')
     {
         targetTown = static_cast<int>(key - '1');
-        atlas = false;
-        game.inputBlocked = false;
+        if (targetTown >= 0)
+        {
+            WorldMap::Focus(Ashen::Waypoints::Position(static_cast<unsigned>(targetTown)));
+        }
+        return;
+    }
+    if (atlas && key == '\r')
+    {
+        if (targetTown >= 0 && game.TravelToWaypoint(static_cast<unsigned>(targetTown)))
+        {
+            atlas = false;
+            game.inputBlocked = false;
+        }
         return;
     }
     if (key == '\t' && !game.Dead() && game.dialogue.empty() && !census)
@@ -467,16 +517,16 @@ void WorldScene::Key(unsigned char key, bool down)
     {
         game.TogglePK();
     }
-    if (key == 'b' || key == 'B' || key == 'n' || key == 'N')
-    {
-        game.Trade(key == 'b' || key == 'B');
-    }
-
     if (key == 'e' || key == 'E')
     {
         game.Interact();
     }
 
+    if ((key == 'h' || key == 'H') && game.dialogue.empty())
+    {
+        game.UseItem(Ashen::ItemId::HealingPotion);
+        return;
+    }
     if (key == 'g' || key == 'G')
     {
         game.Give();
@@ -490,6 +540,69 @@ void WorldScene::Key(unsigned char key, bool down)
     if (key >= '1' && key <= '3')
     {
         game.ChooseEmotion(static_cast<Ashen::Emotion>(key - '1'));
+    }
+}
+
+void WorldScene::Pointer(float x, float y)
+{
+    if (!ready || !atlas || game.Dead() || InventoryInterface::IsOpen())
+    {
+        return;
+    }
+    const int town = WorldMap::Hit(x, y);
+    if (town >= 0)
+    {
+        targetTown = town;
+    }
+    else if (WorldMap::TravelButton(x, y) && targetTown >= 0 &&
+             game.TravelToWaypoint(static_cast<unsigned>(targetTown)))
+    {
+        atlas = false;
+        game.inputBlocked = false;
+    }
+}
+
+void WorldScene::PointerButton(float x, float y, bool down, bool valid)
+{
+    if (!ready || !atlas || game.Dead() || InventoryInterface::IsOpen())
+    {
+        WorldMap::CancelDrag();
+        return;
+    }
+    if (!valid)
+    {
+        if (!down)
+        {
+            WorldMap::CancelDrag();
+        }
+        return;
+    }
+    if (down)
+    {
+        if (!WorldMap::BeginDrag(x, y))
+        {
+            Pointer(x, y);
+        }
+    }
+    else if (WorldMap::EndDrag(x, y))
+    {
+        Pointer(x, y);
+    }
+}
+
+void WorldScene::PointerMove(float x, float y)
+{
+    if (ready && atlas && !game.Dead())
+    {
+        WorldMap::Drag(x, y);
+    }
+}
+
+void WorldScene::Scroll(float x, float y, double steps)
+{
+    if (ready && atlas && !game.Dead())
+    {
+        WorldMap::Zoom(x, y, steps);
     }
 }
 
@@ -510,7 +623,7 @@ WorldScene::InputState WorldScene::InspectInput()
     return {{{game.arrows[0], game.arrows[1], game.arrows[2], game.arrows[3]}},
             game.attack,
             game.sprint,
-            game.jumpRequested};
+            InventoryInterface::IsOpen()};
 }
 
 double WorldScene::SimulationTime()

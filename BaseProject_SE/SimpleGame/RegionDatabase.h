@@ -16,6 +16,7 @@ namespace Ashen
         RegionDatabase& operator=(const RegionDatabase&) = delete;
         bool Open(const std::wstring& path);
         void Close();
+        bool Backup(const std::wstring& path);
 
         bool IsOpen() const
         {

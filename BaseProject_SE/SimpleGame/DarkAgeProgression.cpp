@@ -11,12 +11,15 @@ namespace Ashen
 
     float Game::ShotDamage() const
     {
-        return 18.0f + (growth.level - 1) * 3 + growth.weapon * 4;
+        // Keep growth meaningful without outscaling the fixed 72/90 HP overworld enemies.
+        // The strongest staff at Lv.30/+20 remains below half a full-health enemy's HP.
+        return DamageForWeapon(inventory.Equipped());
     }
 
     float Game::ShotCooldown() const
     {
-        return (std::max)(.18f, .65f / (1 + (growth.level - 1) * .065f + growth.weapon * .04f));
+        // Damage and attack speed both increase DPS, so neither bonus can grow unbounded.
+        return (std::max)(.36f, .72f / (1 + (growth.level - 1) * .02f + growth.weapon * .02f));
     }
 
     float Game::PickupRange() const
@@ -107,6 +110,12 @@ namespace Ashen
             return;
         }
 
+        // Full potion stacks leave the drop in the world rather than destroying its contents.
+        if (static_cast<ItemKind>(drop.variant) == ItemKind::Healing &&
+            !inventory.CanAdd(ItemId::HealingPotion))
+        {
+            return;
+        }
         region.lootCollected |= bit;
         growth.itemsSeen |= 1u << drop.variant;
 
@@ -127,8 +136,8 @@ namespace Ashen
             break;
 
         case ItemKind::Healing:
-            health = (std::min)(MaxHealth(), health + MaxHealth() * .35f);
-            Notify(L"회복약 · 최대 체력의 35% 회복");
+            inventory.Add(ItemId::HealingPotion);
+            Notify(L"회복 물약 +1 · I 인벤토리 / H 사용");
             break;
 
         case ItemKind::Experience:

@@ -120,8 +120,11 @@ namespace Ashen
 
         if (actor && actor->Interact())
         {
-            dirty = true;
-            Save();
+            if (!requestedShop && actor->kind != Kind::Waypoint && actor->kind != Kind::Exploration)
+            {
+                dirty = true;
+                Save();
+            }
         }
     }
 
@@ -252,43 +255,14 @@ namespace Ashen
         {
             return;
         }
-        auto* actor = conversation ? dynamic_cast<WorldActor*>(scene.Find(conversation)) : nullptr;
-        if (!conversation)
+        const auto shop = tradingMerchant;
+        if (buy)
         {
-            // B/N should choose a merchant, not a closer campfire or another profession.
-            float best = 110 * 110;
-            for (Actor* base : scene.Snapshot())
-            {
-                auto* candidate = dynamic_cast<WorldActor*>(base);
-                const auto* npc =
-                    candidate && candidate->kind == Kind::Citizen ? society.Find(candidate->memory) : nullptr;
-                if (!npc || npc->profession != Profession::Merchant || npc->health <= 0 ||
-                    society.IsHostile(npc->id) || !society.IsAtMarket(*npc))
-                {
-                    continue;
-                }
-                const float distance = DistanceSquared(hero->position, candidate->WorldPosition());
-                if (distance <= best && ClearPath(hero->position, candidate->WorldPosition()))
-                {
-                    actor = candidate;
-                    best = distance;
-                }
-            }
+            BuyItem(shop, ItemId::Supplies);
         }
-        if (!actor || actor->kind != Kind::Citizen ||
-            DistanceSquared(actor->WorldPosition(), hero->position) > 110 * 110 ||
-            !ClearPath(hero->position, actor->WorldPosition()))
+        else
         {
-            Notify(L"노점의 금빛 상인에게 가까이 가서 E로 대상을 확인하세요.");
-            return;
-        }
-        if (society.Trade(*this, actor->memory, buy))
-        {
-            if (!dialogue.empty())
-            {
-                dialogue = society.Describe(actor->memory);
-            }
-            Save();
+            SellSupplies(shop);
         }
     }
 

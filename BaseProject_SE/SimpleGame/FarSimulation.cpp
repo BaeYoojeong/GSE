@@ -84,6 +84,9 @@ namespace Ashen
             FIELD(raidResultSeconds);
             FIELD(goalDwellSeconds);
             FIELD(marketDuty);
+            FIELD(marketCooldown);
+            FIELD(marketVisitSeconds);
+            FIELD(marketTripSeconds);
 #undef FIELD
             return h.value;
         }

@@ -2,6 +2,7 @@
 #include "RenderProfiler.h"
 #include "WorldActors.h"
 #include "ChapterActors.h"
+#include "WorldLayout.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -42,7 +43,7 @@ namespace Ashen
 
     unsigned Game::Biome(ChunkKey key) const
     {
-        return key == ChunkKey{} ? 0 : static_cast<unsigned>(Hash(key) % 3);
+        return WorldLayout::Biome(*this, key);
     }
 
     const Region* Game::RegionAt(ChunkKey key) const
@@ -167,6 +168,18 @@ namespace Ashen
             created = &scene.Create<SettlerActor>(parent, *this);
             break;
 
+        case Kind::Exploration:
+            created = &scene.Create<ExplorationActor>(parent, *this);
+            break;
+
+        case Kind::Waypoint:
+            created = &scene.Create<WaypointActor>(parent, *this);
+            break;
+
+        case Kind::MarketStall:
+            created = &scene.Create<MarketStallActor>(parent, *this);
+            break;
+
         case Kind::Grave:
             created = &scene.Create<GraveActor>(parent, *this);
             break;
@@ -217,6 +230,18 @@ namespace Ashen
         {
             return;
         }
+        const unsigned town = static_cast<unsigned>(index);
+        bool hasWaypoint = false;
+        for (Actor* base : scene.Snapshot())
+        {
+            const auto* actor = dynamic_cast<const WorldActor*>(base);
+            hasWaypoint |= actor && actor->kind == Kind::Waypoint && actor->chunk == key;
+        }
+        if (!hasWaypoint)
+        {
+            auto& waypoint = Spawn(Kind::Waypoint, key, root, Waypoints::Position(town).local, index);
+            waypoint.variant = town;
+        }
         for (Actor* base : scene.Snapshot())
         {
             const auto* actor = dynamic_cast<const WorldActor*>(base);
@@ -233,9 +258,24 @@ namespace Ashen
 
     void Game::BuildChunk(ChunkKey key, ActorId root)
     {
-        RegionAt(key);
+        const Region* stored = RegionAt(key);
         Spawn(Kind::Ground, key, root, {});
-        Spawn(Kind::Fire, key, root, {384, 384});
+        // Remembered fires remain usable after the wilderness generator changes.
+        if (WorldLayout::Camp(*this, key) || (stored && stored->lit) || key == checkpoint.chunk)
+        {
+            Spawn(Kind::Fire, key, root, {384, 384});
+        }
+        const auto site = WorldLayout::Feature(*this, key);
+        if (site != WorldLayout::Site::None)
+        {
+            auto& landmark = Spawn(Kind::Exploration, key, root,
+                                   site == WorldLayout::Site::Camp ? Vec2{440, 440} : Vec2{384, 574});
+            landmark.variant = static_cast<unsigned>(site);
+        }
+        RenderProfiler::Event("world_chunk_generated",
+                              "x=" + std::to_string(key.x) + " y=" + std::to_string(key.y) +
+                                  " biome=" + std::to_string(Biome(key)) +
+                                  " site=" + std::to_string(static_cast<unsigned>(site)));
         SpawnSettlement(key, root);
         society.SpawnVillage(*this, key, root);
         chapter.Spawn(*this, key, root);
